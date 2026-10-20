@@ -9,3 +9,5 @@ web/.env
 web/.agents
 web/.claude
 web/.windsurf
+
+node_modules

@@ -1,12 +1,20 @@
 import { AggregateRoot } from "../../../../core/entities/aggregate";
 import type { UniqueEntityId } from "../../../../core/entities/unique-entity-id";
 
+enum TimeEntryStatus {
+  CLOCKED_IN = "clocked-in",
+  CLOCKED_OUT = "clocked-out",
+  ON_BREAK = "on-break"
+}
+
 interface TimeEntryProps {
   clockIn: Date
   clockOut?: Date
 
   breakStart?: Date
   breakEnd?: Date
+
+  status: TimeEntryStatus
 
   employeeId: UniqueEntityId
 
@@ -20,6 +28,10 @@ export class TimeEntry extends AggregateRoot<TimeEntryProps> {
 
   get clockOut(): Date | undefined {
     return this.props.clockOut
+  }
+
+  get status(): TimeEntryStatus {
+    return this.props.status
   }
 
   get breakStart(): Date | undefined {
@@ -36,6 +48,18 @@ export class TimeEntry extends AggregateRoot<TimeEntryProps> {
 
   get updatedAt(): Date | undefined {
     return this.props.updatedAt
+  }
+
+  isClockedIn(): boolean {
+    return this.props.status === TimeEntryStatus.CLOCKED_IN
+  }
+
+  isClockedOut(): boolean {
+    return this.props.status === TimeEntryStatus.CLOCKED_OUT
+  }
+
+  isOnBreak(): boolean {
+    return this.props.status === TimeEntryStatus.ON_BREAK
   }
   
   static create(props: TimeEntryProps, id?: UniqueEntityId): TimeEntry {

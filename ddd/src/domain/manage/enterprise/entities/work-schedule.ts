@@ -5,6 +5,10 @@ interface WorkScheduleProps {
   startTime: string
   endTime: string
 
+  lateTolerance: number
+
+  days: number[]
+
   employeeId: UniqueEntityId
 }
 
@@ -19,6 +23,14 @@ export class WorkSchedule extends AggregateRoot<WorkScheduleProps> {
 
   get employeeId(): UniqueEntityId {
     return this.props.employeeId
+  }
+
+  get lateTolerance(): number {
+    return this.props.lateTolerance
+  }
+
+  get days(): number[] {
+    return this.props.days
   }
 
   static create(props: WorkScheduleProps, id?: UniqueEntityId): WorkSchedule {

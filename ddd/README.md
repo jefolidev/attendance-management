@@ -19,21 +19,21 @@
 
 ## 4. Jornada de Trabalho
 - [ ] O usuário deve conseguir consultar sua jornada de trabalho prevista.
-- [ ] O usuário deve conseguir configurar seus horários de chegada, pausa e saída.
-- [ ] O usuário deve conseguir editar sua jornada de trabalho.
+- [ ] O usuário deve conseguir configurar seus horários de chegada, pausa e saída, conforme suas permissões.
+- [ ] O usuário deve conseguir editar sua jornada de trabalho, conforme suas permissões.
 
 ## 5. Métricas e Banco de Horas
 - [ ] O usuário deve conseguir consultar o tempo acumulado em atrasos.
-- [ ] O usuário deve conseguir consultar seu saldo de horas, incluindo horas devidas e horas extras.
-- [ ] O usuário deve conseguir registrar a compensação de horas devidas.
-- [ ] O usuário deve conseguir consultar o histórico de compensações de horas.
-- [ ] O usuário deve conseguir registrar pagamentos de horas extras.
-- [ ] O usuário deve conseguir consultar o histórico de pagamentos de horas extras.
+- [ ] O usuário deve conseguir consultar seu saldo de horas, incluindo créditos e débitos.
+- [ ] O usuário deve conseguir consultar o histórico de movimentações do banco de horas.
+- [ ] O usuário deve conseguir consultar as compensações de horas realizadas.
+- [ ] O usuário deve conseguir registrar uma compensação de horas, conforme suas permissões.
 
 ## 6. Administração e Gestão
 - [ ] O administrador deve conseguir cadastrar e gerenciar funcionários.
 - [ ] O administrador deve conseguir configurar as jornadas de trabalho dos funcionários.
-- [ ] O gestor deve conseguir consultar os registros de ponto dos funcionários sob sua responsabilidade.
+- [ ] O gestor deve conseguir consultar os registros de ponto dos funcionários sob sua responsabilidade, caso esse perfil seja implementado.
+- [ ] O administrador deve conseguir configurar as políticas de tolerância e apuração de horas.
 - [ ] O sistema deve manter um histórico de alterações nos registros de ponto, incluindo responsável, data e motivo.
 
 ## 7. Controle de Acesso e Permissões
@@ -42,34 +42,35 @@
 - [ ] O sistema deve restringir funcionalidades e operações conforme as permissões do perfil do usuário.
 - [ ] O sistema deve impedir que usuários acessem registros de funcionários sem autorização.
 - [ ] O sistema deve permitir que usuários com permissão administrativa gerenciem as permissões de outros usuários.
-- [ ] O sistema deve validar as permissões tanto no frontend quanto no backend.
+- [ ] O sistema deve validar as permissões no backend e aplicar as restrições correspondentes no frontend.
 
 ### Perfis iniciais sugeridos
 
 - **Administrador (`ADMIN`):** gerencia funcionários, jornadas, perfis e permissões.
 - **Funcionário (`EMPLOYEE`):** registra o próprio ponto, consulta seus registros, acompanha métricas e gerencia sua conta dentro das permissões concedidas.
 
+---
+
 # Regras de Negócio
 
-## Usuários
-
+## 1. Usuários
 - [ ] Só pode existir um usuário com o mesmo `username`.
 - [ ] Cada usuário deve possuir um perfil de acesso que determine suas permissões.
 - [ ] O usuário só pode consultar seus próprios registros de ponto, salvo quando possuir permissão para consultar registros de terceiros.
 - [ ] Somente usuários autorizados podem cadastrar, editar ou desativar outros usuários.
 - [ ] A senha deve ser armazenada de forma segura, utilizando hash, nunca em texto puro.
+- [ ] Um usuário inativo não pode se autenticar nem registrar pontos.
 
-## Jornada de Trabalho
-
+## 2. Jornada de Trabalho
 - [ ] Cada funcionário deve possuir uma jornada de trabalho definida.
 - [ ] A jornada deve definir os horários previstos de entrada, início e fim da pausa e saída.
+- [ ] A jornada deve permitir a configuração dos dias de trabalho e descanso.
 - [ ] As alterações na jornada não devem modificar retroativamente os cálculos de períodos já encerrados.
-- [ ] A jornada deve permitir a configuração de dias úteis e dias de descanso.
 - [ ] O sistema deve considerar a jornada vigente na data de cada registro para calcular atrasos e saldo de horas.
-- [ ] A ausência de uma jornada configurada deve impedir cálculos automáticos de atrasos e horas devidas até que exista uma regra aplicável.
+- [ ] A ausência de uma jornada configurada deve impedir cálculos automáticos de atrasos e saldo de horas até que exista uma regra aplicável.
+- [ ] A jornada deve permitir configurar as tolerâncias aplicáveis aos registros, conforme a política da empresa.
 
-## Registros de Ponto
-
+## 3. Registros de Ponto
 - [ ] Cada marcação deve estar vinculada a um único funcionário.
 - [ ] Cada marcação deve registrar data e hora.
 - [ ] O funcionário deve seguir uma sequência válida de marcações: entrada, início da pausa, fim da pausa e saída.
@@ -77,66 +78,67 @@
 - [ ] Não deve ser permitido iniciar uma pausa sem uma jornada iniciada.
 - [ ] Não deve ser permitido encerrar uma pausa sem que ela tenha sido iniciada.
 - [ ] Não deve ser permitido registrar uma segunda entrada enquanto a jornada anterior estiver aberta.
-- [ ] Uma jornada só pode ser encerrada após a entrada e, quando aplicável, após o encerramento da pausa.
-- [ ] O sistema deve impedir marcações duplicadas ou incompatíveis com o estado atual da jornada.
+- [ ] Uma jornada só pode ser encerrada após a entrada e o encerramento de uma pausa que tenha sido iniciada.
+- [ ] O sistema deve impedir marcações incompatíveis com o estado atual da jornada.
 - [ ] Os registros originais de ponto não devem ser excluídos ou alterados silenciosamente.
-- [ ] O sistema deve utilizar uma referência de data e hora consistente para armazenar os registros e apresentá-los no fuso horário aplicável.
+- [ ] Toda correção deve registrar o responsável, a data, o motivo e os valores anteriores e posteriores.
+- [ ] O sistema deve armazenar e apresentar os registros de acordo com o fuso horário aplicável.
 
-## Cálculo de Horas
-
+## 4. Cálculo de Horas
 - [ ] O tempo trabalhado deve ser calculado a partir das marcações válidas de entrada, pausa, retorno e saída.
 - [ ] Os intervalos de pausa não devem ser contabilizados como horas trabalhadas quando não forem remunerados conforme as regras aplicáveis.
 - [ ] Os atrasos devem ser calculados comparando a entrada registrada com o horário previsto na jornada vigente.
-- [ ] As horas extras devem ser calculadas com base na jornada prevista e nas regras de apuração configuradas.
-- [ ] O saldo de horas deve considerar horas positivas, horas devidas e compensações registradas.
-- [ ] Uma jornada sem saída registrada deve ser considerada incompleta e não deve ser tratada automaticamente como encerrada.
-- [ ] O sistema deve permitir identificar dias sem marcações, jornadas incompletas e inconsistências nos registros.
-- [ ] O sistema deve permitir configurar uma tolerância de minutos para atrasos na entrada e variações no horário de saída.
-- [ ] A tolerância deve ser configurável por jornada de trabalho ou por política da empresa.
-- [ ] A entrada realizada dentro da tolerância de atraso não deve gerar débito de horas.
-- [ ] A saída realizada dentro da tolerância de variação não deve gerar crédito ou débito de horas, salvo quando houver regra específica configurada.
+- [ ] As horas excedentes devem ser calculadas com base na jornada prevista e nas regras de apuração configuradas.
+- [ ] O sistema deve permitir configurar tolerâncias para atrasos na entrada e variações nos demais horários.
+- [ ] A tolerância deve ser configurável por jornada ou por política da empresa.
+- [ ] A tolerância não deve alterar o horário original registrado na marcação.
+- [ ] O sistema deve aplicar as regras de tolerância antes de gerar créditos ou débitos no banco de horas.
 - [ ] O tempo trabalhado antes do início ou após o término da jornada só deve gerar crédito quando atender às regras de contabilização configuradas.
-- [ ] O sistema deve calcular os débitos e créditos considerando a tolerância aplicável, sem descartar períodos que devam ser contabilizados conforme as regras da empresa.
-- [ ] A tolerância não deve alterar o horário original registrado na marcação de ponto.
+- [ ] Uma jornada sem saída registrada deve ser considerada incompleta e não deve ser tratada automaticamente como encerrada.
+- [ ] O sistema deve identificar dias sem marcações, jornadas incompletas e inconsistências nos registros.
 
-## Banco de Horas e Compensações
-
-- [ ] Toda compensação deve estar vinculada a um funcionário e a um saldo de horas existente.
-- [ ] Uma compensação não pode descontar mais horas do que o saldo disponível para compensação.
-- [ ] Cada compensação deve registrar a quantidade de horas, a data, o motivo e o responsável pelo lançamento.
+## 5. Banco de Horas e Compensações
+- [ ] Cada funcionário deve possuir um saldo de horas consolidado, representado por `WorkBalance`.
+- [ ] O saldo deve refletir os créditos, débitos e compensações contabilizados.
+- [ ] Cada alteração no saldo deve gerar uma movimentação registrada em `WorkBalanceEntry`.
+- [ ] Cada movimentação deve identificar seu tipo (`CREDIT` ou `DEBIT`), motivo, quantidade de minutos e data de criação.
+- [ ] As movimentações devem possuir uma origem identificável sempre que forem geradas por uma marcação ou jornada.
+- [ ] Uma mesma marcação ou jornada não pode gerar a mesma movimentação mais de uma vez.
+- [ ] Ao encerrar uma jornada, o sistema deve calcular o resultado da apuração e registrar as movimentações correspondentes.
+- [ ] Débitos de horas devem reduzir o saldo disponível do funcionário.
+- [ ] Créditos de horas devem reduzir débitos existentes antes de gerar saldo positivo, conforme a política de apuração configurada.
+- [ ] Caso o crédito seja superior ao débito existente, o excedente deve compor o saldo positivo.
+- [ ] Toda compensação deve estar vinculada ao funcionário e à movimentação ou saldo que está sendo compensado.
 - [ ] Uma compensação não pode ser contabilizada mais de uma vez.
-- [ ] O pagamento de horas extras deve ser registrado separadamente da compensação de horas.
-- [ ] Um pagamento não pode ser registrado como realizado sem a confirmação ou autorização exigida pelo sistema.
-- [ ] O sistema deve manter o histórico das movimentações do banco de horas.
-- [ ] Ao registrar a saída, o sistema deve calcular o saldo de horas da jornada, considerando o horário previsto e as regras de apuração configuradas.
-- [ ] Caso exista saldo de horas em débito, o excedente trabalhado deve ser utilizado para reduzir esse saldo, até o limite das horas devidas.
-- [ ] Caso o excedente trabalhado seja superior ao saldo devedor, as horas restantes devem ser adicionadas ao banco de horas positivo.
-- [ ] Toda movimentação automática do banco de horas deve ser registrada no histórico, incluindo a quantidade de horas, o tipo de movimentação e a data.
-- [ ] O sistema deve impedir que a mesma jornada gere movimentações duplicadas no banco de horas.
+- [ ] A compensação deve gerar uma movimentação rastreável no banco de horas.
+- [ ] O sistema deve manter o histórico de créditos, débitos e compensações.
+- [ ] O saldo consolidado deve ser consistente com o histórico de movimentações.
 
-## Permissões e Segurança
-
+## 6. Permissões e Segurança
 - [ ] Cada operação deve ser autorizada no backend de acordo com o perfil e as permissões do usuário.
 - [ ] Um funcionário não pode registrar ponto em nome de outro funcionário sem autorização específica.
+- [ ] Somente usuários autorizados podem aprovar correções de ponto.
+- [ ] Somente usuários autorizados podem alterar jornadas de trabalho e políticas de apuração.
 - [ ] Toda operação administrativa relevante deve gerar um registro de auditoria.
-- [ ] A desativação de um funcionário não deve excluir seu histórico de ponto.
+- [ ] A desativação de um funcionário não deve excluir seu histórico de ponto ou banco de horas.
 
-## Consultas e Exportações
-
+## 7. Consultas e Exportações
 - [ ] As consultas devem respeitar as permissões de acesso aos registros.
 - [ ] Os filtros por dia, semana, mês e ano devem considerar o período selecionado.
 - [ ] Os totais exibidos nos relatórios devem ser consistentes com os cálculos utilizados pelo sistema.
 - [ ] As exportações devem respeitar os mesmos filtros e permissões da consulta original.
-- [ ] Os relatórios devem distinguir marcações realizadas, correções, horas trabalhadas, atrasos, horas extras e compensações.
+- [ ] Os relatórios devem distinguir marcações realizadas, correções, horas trabalhadas, atrasos, créditos, débitos e compensações.
 
-## Observações de Modelagem
+---
+
+# Observações de Modelagem
 
 - `Employee`: representa o funcionário.
 - `TimeEntry`: representa uma marcação individual de ponto.
 - `WorkSchedule`: representa a jornada de trabalho prevista.
-- `TimeCompensation`: representa a compensação de horas.
-- `OvertimePayment`: representa o pagamento de horas extras.
+- `TimeCompensation`: representa uma compensação de horas.
+- `WorkBalance`: representa o saldo consolidado de horas do funcionário.
+- `WorkBalanceEntry`: representa uma movimentação individual de crédito ou débito.
 - `Timesheet`: representa o espelho ou consolidado de ponto de um período.
 
-**Nota:** compensação de horas e pagamento de horas extras são operações distintas e devem possuir regras e registros próprios.
-
+**Nota:** o `WorkBalance` deve manter o saldo consolidado, enquanto o `WorkBalanceEntry` registra o histórico das movimentações que formam esse saldo. A compensação de horas deve ser rastreável e não deve gerar créditos ou débitos duplicados.

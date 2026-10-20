@@ -1,7 +1,7 @@
 import { Entity } from "../../../../core/entities/entity";
 import type { UniqueEntityId } from "../../../../core/entities/unique-entity-id";
 
-interface WorkBalanceProps {
+interface TimeBalanceProps {
   employeeId: UniqueEntityId
 
   totalWorkedMinutes: number
@@ -11,7 +11,7 @@ interface WorkBalanceProps {
   updatedAt?: Date
 }
 
-export class WorkBalance extends Entity<WorkBalanceProps> { 
+export class TimeBalance extends Entity<TimeBalanceProps> { 
   get employeeId(): UniqueEntityId {
     return this.props.employeeId
   }
@@ -32,8 +32,8 @@ export class WorkBalance extends Entity<WorkBalanceProps> {
     return this.props.updatedAt
   }
 
-  static create(props: WorkBalanceProps, id?: UniqueEntityId): WorkBalance {
-    const workBalance = new WorkBalance(props, id)
+  static create(props: TimeBalanceProps, id?: UniqueEntityId): TimeBalance {
+    const workBalance = new TimeBalance(props, id)
 
     return workBalance
   }

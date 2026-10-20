@@ -2,7 +2,7 @@ import { AggregateRoot } from "../../../../core/entities/aggregate";
 import type { Optional } from "../../../../core/entities/types/optional";
 import type { UniqueEntityId } from "../../../../core/entities/unique-entity-id";
 
-interface EmployeeProps {
+export interface EmployeeProps {
   username: string
   password: string
 

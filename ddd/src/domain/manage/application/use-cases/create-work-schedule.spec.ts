@@ -24,6 +24,7 @@ describe('Create WorkSchedule', () => {
       startTime: '09:00',
       endTime: '17:00',
       lateTolerance: 5,
+      breakTimes: 1,
       requesterId: requester.id.toString()
     })
 
@@ -41,6 +42,7 @@ describe('Create WorkSchedule', () => {
       startTime: '09:00',
       endTime: '17:00',
       lateTolerance: 5,
+      breakTimes: 1,
       requesterId: requester.id.toString()
     })
 
@@ -57,6 +59,7 @@ describe('Create WorkSchedule', () => {
       startTime: '09:00',
       endTime: '17:00',
       lateTolerance: 5,
+      breakTimes: 1,
       requesterId: requester.id.toString()
     })
 
@@ -73,6 +76,7 @@ describe('Create WorkSchedule', () => {
       startTime: '25:00',
       endTime: '17:00',
       lateTolerance: 5,
+      breakTimes: 1,
       requesterId: requester.id.toString()
     })
 

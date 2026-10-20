@@ -1,0 +1,11 @@
+api/node_modules
+api/.env
+api/.agents
+api/.claude
+api/.windsurf
+
+web/node_modules
+web/.env
+web/.agents
+web/.claude
+web/.windsurf

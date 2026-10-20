@@ -1,0 +1,48 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Employee {
+  id       String @id @default(cuid())
+  username String
+  password String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  TimeEntries   TimeEntry[]
+  workSchedules WorkSchedule[]
+}
+
+model TimeEntry {
+  id String @id @default(cuid())
+
+  clockIn  DateTime
+  clockOut DateTime?
+
+  breakStart DateTime?
+  breakEnd   DateTime?
+
+  employeeId String
+  employee   Employee @relation(fields: [employeeId], references: [id])
+}
+
+model WorkSchedule {
+  id String @id @default(cuid())
+
+  startTime DateTime
+  endTime   DateTime
+
+  employeeId String
+  employee   Employee @relation(fields: [employeeId], references: [id])
+}

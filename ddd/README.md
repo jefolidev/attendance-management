@@ -30,7 +30,7 @@
 - [ ] O usuário deve conseguir registrar uma compensação de horas, conforme suas permissões.
 
 ## 6. Administração e Gestão
-- [ ] O administrador deve conseguir cadastrar e gerenciar funcionários.
+- [x] O administrador deve conseguir cadastrar e gerenciar funcionários.
 - [ ] O administrador deve conseguir configurar as jornadas de trabalho dos funcionários.
 - [ ] O gestor deve conseguir consultar os registros de ponto dos funcionários sob sua responsabilidade, caso esse perfil seja implementado.
 - [ ] O administrador deve conseguir configurar as políticas de tolerância e apuração de horas.

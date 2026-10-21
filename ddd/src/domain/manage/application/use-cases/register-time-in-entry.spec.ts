@@ -66,6 +66,7 @@ describe('Register Time In Entry', () => {
 		await inMemoryWorkScheduleRepository.create(workSchedule)
 
 		const timeEntry = TimeEntry.create({
+			breaks: [],
 			clockIn: dayjs('2026-01-01').toDate(),
 			status: TimeEntryStage.CLOCKED_IN,
 			employeeId: employee.id,

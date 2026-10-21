@@ -5,7 +5,7 @@
 - [ ] O usuário deve conseguir trocar sua senha.
 
 ## 2. Registro de Ponto
-- [ ] O usuário deve conseguir registrar sua chegada.
+- [x] O usuário deve conseguir registrar sua chegada.
 - [ ] O usuário deve conseguir registrar o início da pausa.
 - [ ] O usuário deve conseguir registrar o fim da pausa.
 - [ ] O usuário deve conseguir registrar sua saída.

@@ -1,3 +1,4 @@
+import type { Optional } from '@src/core/entities/types/optional'
 import { AggregateRoot } from '../../../../core/entities/aggregate'
 import type { UniqueEntityId } from '../../../../core/entities/unique-entity-id'
 
@@ -7,12 +8,13 @@ export enum TimeEntryStage {
 	ON_BREAK = 'on-break',
 }
 
+type TimeEntryBreaks = { start: Date; end: Date | null }[]
+
 interface TimeEntryProps {
 	clockIn: Date
 	clockOut?: Date
 
-	breakStart?: Date
-	breakEnd?: Date
+	breaks: TimeEntryBreaks
 
 	status: TimeEntryStage | null
 
@@ -34,12 +36,8 @@ export class TimeEntry extends AggregateRoot<TimeEntryProps> {
 		return this.props.status
 	}
 
-	get breakStart(): Date | undefined {
-		return this.props.breakStart
-	}
-
-	get breakEnd(): Date | undefined {
-		return this.props.breakEnd
+	get breaks(): TimeEntryBreaks {
+		return this.props.breaks
 	}
 
 	get employeeId(): UniqueEntityId {
@@ -50,11 +48,37 @@ export class TimeEntry extends AggregateRoot<TimeEntryProps> {
 		return this.props.updatedAt
 	}
 
+	haveAnActiveBreak(): boolean {
+		return this.props.breaks.some((b) => b.end === null)
+	}
+
 	haveAnActiveEntry(): boolean {
 		return (
 			this.props.status === TimeEntryStage.CLOCKED_IN ||
 			this.props.status === TimeEntryStage.ON_BREAK
 		)
+	}
+
+	startBreak(breakIn: Date): void {
+		if (this.haveAnActiveBreak()) {
+			throw new Error('Already have an active break.')
+		}
+
+		this.props.breaks.push({ start: breakIn, end: null })
+		this.props.status = TimeEntryStage.ON_BREAK
+		this.props.updatedAt = new Date()
+	}
+
+	endBreak(breakOut: Date): void {
+		const activeBreak = this.props.breaks.find((b) => b.end === null)
+
+		if (!activeBreak) {
+			throw new Error('No active break to end.')
+		}
+
+		activeBreak.end = breakOut
+		this.props.status = TimeEntryStage.CLOCKED_IN
+		this.props.updatedAt = new Date()
 	}
 
 	isClockedIn(): boolean {
@@ -69,8 +93,17 @@ export class TimeEntry extends AggregateRoot<TimeEntryProps> {
 		return this.props.status === TimeEntryStage.ON_BREAK
 	}
 
-	static create(props: TimeEntryProps, id?: UniqueEntityId): TimeEntry {
-		const timeEntry = new TimeEntry(props, id)
+	static create(
+		props: Optional<TimeEntryProps, 'breaks'>,
+		id?: UniqueEntityId,
+	): TimeEntry {
+		const timeEntry = new TimeEntry(
+			{
+				breaks: [],
+				...props,
+			},
+			id,
+		)
 
 		return timeEntry
 	}

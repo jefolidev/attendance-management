@@ -25,6 +25,18 @@ export class InMemoryTimeEntryRepository implements TimeEntryRepository {
 		return timeEntries
 	}
 
+	async findInProgressByEmployeeId(
+		employeeId: string,
+	): Promise<TimeEntry | null> {
+		const timeEntry = this.items.find(
+			(timeEntry) =>
+				timeEntry.employeeId.equals(new UniqueEntityId(employeeId)) &&
+				(timeEntry.status === 'clocked-in' || timeEntry.status === 'on-break'),
+		)
+
+		return timeEntry || null
+	}
+
 	async update(timeEntry: TimeEntry): Promise<void> {
 		const index = this.items.findIndex((t) => t.id.equals(timeEntry.id))
 

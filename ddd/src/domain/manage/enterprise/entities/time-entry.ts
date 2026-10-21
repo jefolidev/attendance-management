@@ -1,70 +1,77 @@
-import { AggregateRoot } from "../../../../core/entities/aggregate";
-import type { UniqueEntityId } from "../../../../core/entities/unique-entity-id";
+import { AggregateRoot } from '../../../../core/entities/aggregate'
+import type { UniqueEntityId } from '../../../../core/entities/unique-entity-id'
 
 export enum TimeEntryStage {
-  CLOCKED_IN = "clocked-in",
-  CLOCKED_OUT = "clocked-out",
-  ON_BREAK = "on-break"
+	CLOCKED_IN = 'clocked-in',
+	CLOCKED_OUT = 'clocked-out',
+	ON_BREAK = 'on-break',
 }
 
 interface TimeEntryProps {
-  clockIn: Date
-  clockOut?: Date
+	clockIn: Date
+	clockOut?: Date
 
-  breakStart?: Date
-  breakEnd?: Date
+	breakStart?: Date
+	breakEnd?: Date
 
-  status: TimeEntryStage | null
+	status: TimeEntryStage | null
 
-  employeeId: UniqueEntityId
+	employeeId: UniqueEntityId
 
-  updatedAt?: Date
+	updatedAt?: Date
 }
 
 export class TimeEntry extends AggregateRoot<TimeEntryProps> {
-  get clockIn(): Date {
-    return this.props.clockIn
-  }
+	get clockIn(): Date {
+		return this.props.clockIn
+	}
 
-  get clockOut(): Date | undefined {
-    return this.props.clockOut
-  }
+	get clockOut(): Date | undefined {
+		return this.props.clockOut
+	}
 
-  get status(): TimeEntryStage | null {
-    return this.props.status
-  }
+	get status(): TimeEntryStage | null {
+		return this.props.status
+	}
 
-  get breakStart(): Date | undefined {
-    return this.props.breakStart
-  }
+	get breakStart(): Date | undefined {
+		return this.props.breakStart
+	}
 
-  get breakEnd(): Date | undefined {
-    return this.props.breakEnd
-  }
+	get breakEnd(): Date | undefined {
+		return this.props.breakEnd
+	}
 
-  get employeeId(): UniqueEntityId {
-    return this.props.employeeId
-  }
+	get employeeId(): UniqueEntityId {
+		return this.props.employeeId
+	}
 
-  get updatedAt(): Date | undefined {
-    return this.props.updatedAt
-  }
+	get updatedAt(): Date | undefined {
+		return this.props.updatedAt
+	}
 
-  isClockedIn(): boolean {
-    return this.props.status === TimeEntryStage.CLOCKED_IN
-  }
+	haveAnActiveEntry(): boolean {
+		return (
+			this.props.status === TimeEntryStage.CLOCKED_IN ||
+			this.props.status === TimeEntryStage.ON_BREAK
+		)
+	}
 
-  isClockedOut(): boolean {
-    return this.props.status === TimeEntryStage.CLOCKED_OUT
-  }
+	isClockedIn(): boolean {
+		return this.props.status === TimeEntryStage.CLOCKED_IN
+	}
 
-  isOnBreak(): boolean {
-    return this.props.status === TimeEntryStage.ON_BREAK
-  }
-  
-  static create(props: TimeEntryProps, id?: UniqueEntityId): TimeEntry {
-    const timeEntry = new TimeEntry(props, id)
+	isClockedOut(): boolean {
+		return this.props.status === TimeEntryStage.CLOCKED_OUT
+	}
 
-    return timeEntry
-  }
+	isOnBreak(): boolean {
+		return this.props.status === TimeEntryStage.ON_BREAK
+	}
+
+	static create(props: TimeEntryProps, id?: UniqueEntityId): TimeEntry {
+		const timeEntry = new TimeEntry(props, id)
+
+		return timeEntry
+	}
 }

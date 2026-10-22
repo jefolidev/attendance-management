@@ -6,8 +6,8 @@
 
 ## 2. Registro de Ponto
 - [x] O usuário deve conseguir registrar sua chegada.
-- [ ] O usuário deve conseguir registrar o início da pausa.
-- [ ] O usuário deve conseguir registrar o fim da pausa.
+- [x] O usuário deve conseguir registrar o início da pausa.
+- [x] O usuário deve conseguir registrar o fim da pausa.
 - [ ] O usuário deve conseguir registrar sua saída.
 - [ ] O usuário deve conseguir visualizar seu histórico de marcações.
 - [ ] O usuário deve conseguir solicitar a correção de uma marcação incorreta.

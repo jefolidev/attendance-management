@@ -8,9 +8,9 @@ export enum TimeEntryStage {
 	ON_BREAK = 'on-break',
 }
 
-type TimeEntryBreaks = { start: Date; end: Date | null }[]
+export type TimeEntryBreaks = { start: Date; end: Date | null }[]
 
-interface TimeEntryProps {
+export interface TimeEntryProps {
 	clockIn: Date
 	clockOut?: Date
 

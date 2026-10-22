@@ -29,7 +29,7 @@ describe('Register Time In Entry', () => {
 		await inMemoryEmployeeRepository.create(employee)
 
 		const workSchedule = WorkSchedule.create({
-			breakTimes: 1,
+			breaksPerDay: 1,
 			days: [1, 2, 3, 4, 5],
 			endTime: '17:00',
 			lateTolerance: 15,
@@ -55,7 +55,7 @@ describe('Register Time In Entry', () => {
 		await inMemoryEmployeeRepository.create(employee)
 
 		const workSchedule = WorkSchedule.create({
-			breakTimes: 1,
+			breaksPerDay: 1,
 			days: [1, 2, 3, 4, 5],
 			endTime: '17:00',
 			lateTolerance: 15,

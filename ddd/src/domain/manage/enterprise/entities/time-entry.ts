@@ -32,6 +32,12 @@ export class TimeEntry extends AggregateRoot<TimeEntryProps> {
 		return this.props.clockOut
 	}
 
+	set clockOut(clockOut: Date | undefined) {
+		this.props.clockOut = clockOut
+		this.props.status = TimeEntryStage.CLOCKED_OUT
+		this.props.updatedAt = new Date()
+	}
+
 	get status(): TimeEntryStage | null {
 		return this.props.status
 	}

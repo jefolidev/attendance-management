@@ -103,7 +103,9 @@ describe('Get Accumulated Delay Time', () => {
 		expect(response.isRight()).toBe(true)
 
 		if (response.isRight()) {
-			expect(response.value.accumulatedDelayMinutes).toBe(20)
+			expect(response.value.totalLateMinutes).toBe(50)
+			expect(response.value.compensatedMinutes).toBe(20)
+			expect(response.value.uncompensatedMinutes).toBe(20)
 		}
 	})
 })

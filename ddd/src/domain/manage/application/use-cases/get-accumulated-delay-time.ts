@@ -11,7 +11,11 @@ interface GetAccumulatedDelayTimeUseCaseRequest {
 
 type GetAccumulatedDelayTimeUseCaseResponse = Either<
 	NotFoundError,
-	{ accumulatedDelayMinutes: number }
+	{
+		totalLateMinutes: number
+		compensatedMinutes: number
+		uncompensatedMinutes: number
+	}
 >
 
 export class GetAccumulatedDelayTimeUseCase {
@@ -43,7 +47,11 @@ export class GetAccumulatedDelayTimeUseCase {
 		)
 
 		if (!timeEntries || timeEntries.length === 0) {
-			return right({ accumulatedDelayMinutes: 0 })
+			return right({
+				compensatedMinutes: 0,
+				totalLateMinutes: 0,
+				uncompensatedMinutes: 0,
+			})
 		}
 
 		const { hours: startHour, minutes: startMinute } = this.parseTimeString(
@@ -58,7 +66,9 @@ export class GetAccumulatedDelayTimeUseCase {
 				employee.id.toString(),
 			)
 
-		let unpaidDelayMinutes = 0
+		let compensatedMinutes = 0
+		let uncompensatedMinutes = 0
+		let totalLateMinutes = 0
 
 		for (const entry of completedTimeEntries) {
 			const clockIn = dayjs(entry.clockIn)
@@ -73,13 +83,19 @@ export class GetAccumulatedDelayTimeUseCase {
 			const lateMinutes = Math.max(0, clockIn.diff(expectedStart, 'minute'))
 			const extraMinutes = Math.max(0, clockOut.diff(expectedEnd, 'minute'))
 
-			unpaidDelayMinutes = Math.max(
+			totalLateMinutes += lateMinutes
+			compensatedMinutes += Math.min(lateMinutes, extraMinutes)
+			uncompensatedMinutes = Math.max(
 				0,
-				unpaidDelayMinutes + lateMinutes - extraMinutes,
+				uncompensatedMinutes + lateMinutes - extraMinutes,
 			)
 		}
 
-		return right({ accumulatedDelayMinutes: unpaidDelayMinutes })
+		return right({
+			compensatedMinutes,
+			totalLateMinutes,
+			uncompensatedMinutes,
+		})
 	}
 
 	private parseTimeString(timeString: string): {

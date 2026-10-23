@@ -32,7 +32,7 @@
 - [x] O usuário deve conseguir editar sua jornada de trabalho, conforme suas permissões.
 
 ## 5. Métricas e Banco de Horas
-- [ ] O usuário deve conseguir consultar o tempo acumulado em atrasos.
+- [x] O usuário deve conseguir consultar o tempo acumulado em atrasos.
 - [ ] O usuário deve conseguir consultar seu saldo de horas, incluindo créditos e débitos.
 - [ ] O usuário deve conseguir consultar o histórico de movimentações do banco de horas.
 - [ ] O usuário deve conseguir consultar as compensações de horas realizadas.

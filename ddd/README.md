@@ -28,8 +28,8 @@
 
 ## 4. Jornada de Trabalho
 - [x] O usuário deve conseguir consultar sua jornada de trabalho prevista.
-- [ ] O usuário deve conseguir configurar seus horários de chegada, pausa e saída, conforme suas permissões.
-- [ ] O usuário deve conseguir editar sua jornada de trabalho, conforme suas permissões.
+- [x] O usuário deve conseguir configurar seus horários de chegada, pausa e saída, conforme suas permissões.
+- [x] O usuário deve conseguir editar sua jornada de trabalho, conforme suas permissões.
 
 ## 5. Métricas e Banco de Horas
 - [ ] O usuário deve conseguir consultar o tempo acumulado em atrasos.
@@ -40,7 +40,7 @@
 
 ## 6. Administração e Gestão
 - [x] O administrador deve conseguir cadastrar e gerenciar funcionários.
-- [ ] O administrador deve conseguir configurar as jornadas de trabalho dos funcionários.
+- [x] O administrador deve conseguir configurar as jornadas de trabalho dos funcionários.
 - [ ] O gestor deve conseguir consultar os registros de ponto dos funcionários sob sua responsabilidade, caso esse perfil seja implementado.
 - [ ] O administrador deve conseguir configurar as políticas de tolerância e apuração de horas.
 - [ ] O sistema deve manter um histórico de alterações nos registros de ponto, incluindo responsável, data e motivo.
@@ -63,11 +63,11 @@
 # Regras de Negócio
 
 ## 1. Usuários
-- [ ] Só pode existir um usuário com o mesmo `username`.
-- [ ] Cada usuário deve possuir um perfil de acesso que determine suas permissões.
-- [ ] O usuário só pode consultar seus próprios registros de ponto, salvo quando possuir permissão para consultar registros de terceiros.
-- [ ] Somente usuários autorizados podem cadastrar, editar ou desativar outros usuários.
-- [ ] A senha deve ser armazenada de forma segura, utilizando hash, nunca em texto puro.
+- [x] Só pode existir um usuário com o mesmo `username`.
+- [x] Cada usuário deve possuir um perfil de acesso que determine suas permissões.
+- [x] O usuário só pode consultar seus próprios registros de ponto, salvo quando possuir permissão para consultar registros de terceiros.
+- [x] Somente usuários autorizados podem cadastrar, editar ou desativar outros usuários.
+- [x] A senha deve ser armazenada de forma segura, utilizando hash, nunca em texto puro.
 - [ ] Um usuário inativo não pode se autenticar nem registrar pontos.
 
 ## 2. Jornada de Trabalho

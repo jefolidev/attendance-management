@@ -25,13 +25,23 @@ export class InMemoryTimeEntryRepository implements TimeEntryRepository {
 		return timeEntries
 	}
 
+	async findCompletedByEmployeeId(employeeId: string): Promise<TimeEntry[]> {
+		const timeEntry = this.items.filter(
+			(timeEntry) =>
+				timeEntry.employeeId.equals(new UniqueEntityId(employeeId)) &&
+				timeEntry.isClockedOut(),
+		)
+
+		return timeEntry || null
+	}
+
 	async findInProgressByEmployeeId(
 		employeeId: string,
 	): Promise<TimeEntry | null> {
 		const timeEntry = this.items.find(
 			(timeEntry) =>
 				timeEntry.employeeId.equals(new UniqueEntityId(employeeId)) &&
-				(timeEntry.status === 'clocked-in' || timeEntry.status === 'on-break'),
+				(timeEntry.isClockedIn() || timeEntry.status === 'on-break'),
 		)
 
 		return timeEntry || null

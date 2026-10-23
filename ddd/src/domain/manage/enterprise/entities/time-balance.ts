@@ -1,40 +1,61 @@
-import { Entity } from "../../../../core/entities/entity";
-import type { UniqueEntityId } from "../../../../core/entities/unique-entity-id";
+import type { Optional } from '@src/core/entities/types/optional'
+import { Entity } from '../../../../core/entities/entity'
+import type { UniqueEntityId } from '../../../../core/entities/unique-entity-id'
+import type { TimeBalanceEntryProps } from './time-balance-entry'
 
 interface TimeBalanceProps {
-  employeeId: UniqueEntityId
+	employeeId: UniqueEntityId
 
-  totalWorkedMinutes: number
-  totalCompensatedMinutes: number
-  totalBalanceMinutes: number
+	events: TimeBalanceEntryProps[]
 
-  updatedAt?: Date
+	balanceMinutes: number
+
+	updatedAt?: Date
 }
 
-export class TimeBalance extends Entity<TimeBalanceProps> { 
-  get employeeId(): UniqueEntityId {
-    return this.props.employeeId
-  }
+export class TimeBalance extends Entity<TimeBalanceProps> {
+	get employeeId(): UniqueEntityId {
+		return this.props.employeeId
+	}
 
-  get totalWorkedMinutes(): number {
-    return this.props.totalWorkedMinutes
-  }
+	get events(): TimeBalanceEntryProps[] {
+		return this.props.events
+	}
 
-  get totalCompensatedMinutes(): number {
-    return this.props.totalCompensatedMinutes
-  }
+	get balanceMinutes(): number {
+		return this.props.balanceMinutes
+	}
 
-  get totalBalanceMinutes(): number {
-    return this.props.totalBalanceMinutes
-  }
+	get updatedAt(): Date | undefined {
+		return this.props.updatedAt
+	}
 
-  get updatedAt(): Date | undefined {
-    return this.props.updatedAt
-  }
+	touch(): void {
+		this.props.updatedAt = new Date()
+	}
 
-  static create(props: TimeBalanceProps, id?: UniqueEntityId): TimeBalance {
-    const workBalance = new TimeBalance(props, id)
+	applyEntry(type: 'CREDIT' | 'DEBIT', minutes: number): void {
+		const signal = type === 'CREDIT' ? 1 : -1
+		this.props.balanceMinutes += signal * minutes
+	}
 
-    return workBalance
-  }
+	addEvent(event: TimeBalanceEntryProps): void {
+		this.props.events.push(event)
+	}
+
+	static create(
+		props: Optional<TimeBalanceProps, 'balanceMinutes' | 'events'>,
+		id?: UniqueEntityId,
+	): TimeBalance {
+		const workBalance = new TimeBalance(
+			{
+				events: [],
+				balanceMinutes: 0,
+				...props,
+			},
+			id,
+		)
+
+		return workBalance
+	}
 }

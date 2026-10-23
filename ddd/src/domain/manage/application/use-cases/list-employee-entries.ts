@@ -26,7 +26,6 @@ export class ListEmployeeEntriesUseCase {
 
 	async execute({
 		requesterId,
-		page = 1,
 	}: ListEmployeeEntriesUseCaseRequest): Promise<ListEmployeeEntriesUseCaseResponse> {
 		if (!requesterId) {
 			return left(new NotFoundError('Requester ID is required'))
@@ -47,10 +46,8 @@ export class ListEmployeeEntriesUseCase {
 			)
 		}
 
-		const timeEntries = await this.timeEntryRepository.findByEmployeeId(
-			requesterId,
-			{ page },
-		)
+		const timeEntries =
+			await this.timeEntryRepository.findByEmployeeId(requesterId)
 
 		const entriesAndStatistics: Record<string, EntriesAndStatisticsProps>[] =
 			timeEntries.map((entry) => {
@@ -85,7 +82,7 @@ export class ListEmployeeEntriesUseCase {
 					? departedTime.diff(workEndTime, 'minute')
 					: 0
 
-				const totalWorkedTime = entry.calculateTotalTime()
+				const totalWorkedTime = entry.calculateWorkedTimeWithoutBreaks()
 
 				const date = new Date(entry.clockIn)
 

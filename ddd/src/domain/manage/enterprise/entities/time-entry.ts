@@ -1,4 +1,5 @@
 import type { Optional } from '@src/core/entities/types/optional'
+import dayjs from 'dayjs'
 import { AggregateRoot } from '../../../../core/entities/aggregate'
 import type { UniqueEntityId } from '../../../../core/entities/unique-entity-id'
 
@@ -16,7 +17,7 @@ export interface TimeEntryProps {
 
 	breaks: TimeEntryBreaks
 
-	status: TimeEntryStage | null
+	status: TimeEntryStage
 
 	employeeId: UniqueEntityId
 
@@ -38,7 +39,7 @@ export class TimeEntry extends AggregateRoot<TimeEntryProps> {
 		this.props.updatedAt = new Date()
 	}
 
-	get status(): TimeEntryStage | null {
+	get status(): TimeEntryStage {
 		return this.props.status
 	}
 
@@ -97,6 +98,43 @@ export class TimeEntry extends AggregateRoot<TimeEntryProps> {
 
 	isOnBreak(): boolean {
 		return this.props.status === TimeEntryStage.ON_BREAK
+	}
+
+	calculateTotalTime(): number {
+		if (!this.props.clockOut) {
+			return -1
+		}
+
+		const total = this.props.clockOut.getTime() - this.props.clockIn.getTime()
+
+		const breaksTotalTime = this.props.breaks.reduce((acc, b) => {
+			if (b.end) {
+				return acc + (b.end.getTime() - b.start.getTime())
+			}
+			return acc
+		}, 0)
+
+		return total - breaksTotalTime
+	}
+
+	hasReachedEarlierThanWorkStartTime(workStartTime: Date): boolean {
+		return dayjs(this.props.clockIn).isBefore(workStartTime)
+	}
+
+	hasReachedLaterThanWorkStartTime(workStartTime: Date): boolean {
+		return dayjs(this.props.clockIn).isAfter(workStartTime)
+	}
+
+	hasDepartedLaterThanWorkEndTime(workEndTime: Date): boolean {
+		return this.props.clockOut
+			? dayjs(this.props.clockOut).isAfter(workEndTime)
+			: false
+	}
+
+	hasDepartedEarlierThanWorkEndTime(workEndTime: Date): boolean {
+		return this.props.clockOut
+			? dayjs(this.props.clockOut).isBefore(workEndTime)
+			: false
 	}
 
 	static create(

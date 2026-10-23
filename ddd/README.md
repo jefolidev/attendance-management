@@ -8,8 +8,17 @@
 - [x] O usuário deve conseguir registrar sua chegada.
 - [x] O usuário deve conseguir registrar o início da pausa.
 - [x] O usuário deve conseguir registrar o fim da pausa.
-- [ ] O usuário deve conseguir registrar sua saída.
+- [x] O usuário deve conseguir registrar sua saída.
 - [ ] O usuário deve conseguir visualizar seu histórico de marcações.
+      ### Request 
+        - Paginação;
+        - Filtro por: período, tipo de evento
+      ### Response
+        - Tipo do evento: Entrada, pausa, saída;
+        - Data e hora do evento;
+        - Se for entrada, exibir estatística de atrasado ou se entrou adiantado;
+        - Se for saída, exibir estatística de se saindo cedo ou se saiu depois;
+
 - [ ] O usuário deve conseguir solicitar a correção de uma marcação incorreta.
 
 ## 3. Consulta e Exportação de Registros

@@ -19,6 +19,26 @@ export class WorkSchedule extends AggregateRoot<WorkScheduleProps> {
 		return this.props.startTime
 	}
 
+	set startTime(value: string) {
+		this.props.startTime = value
+	}
+
+	set endTime(value: string) {
+		this.props.endTime = value
+	}
+
+	set lateTolerance(value: number) {
+		this.props.lateTolerance = value
+	}
+
+	set days(value: number[]) {
+		this.props.days = value
+	}
+
+	set breaksPerDay(value: number) {
+		this.props.breaksPerDay = value
+	}
+
 	get endTime(): string {
 		return this.props.endTime
 	}

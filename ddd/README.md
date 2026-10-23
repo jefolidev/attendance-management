@@ -9,7 +9,7 @@
 - [x] O usuário deve conseguir registrar o início da pausa.
 - [x] O usuário deve conseguir registrar o fim da pausa.
 - [x] O usuário deve conseguir registrar sua saída.
-- [ ] O usuário deve conseguir visualizar seu histórico de marcações.
+- [x] O usuário deve conseguir visualizar seu histórico de marcações.
       ### Request 
         - Paginação;
         - Filtro por: período, tipo de evento
@@ -22,12 +22,12 @@
 - [ ] O usuário deve conseguir solicitar a correção de uma marcação incorreta.
 
 ## 3. Consulta e Exportação de Registros
-- [ ] O usuário deve conseguir consultar seus registros por dia, semana, mês e ano.
+- [ ] O usuário deve conseguir consultar seus registros por dia, semana, mês e ano
 - [ ] O usuário deve conseguir exportar seus registros para uma planilha.
 - [ ] O usuário deve conseguir visualizar seu espelho de ponto, incluindo a jornada prevista, as marcações realizadas e o total de horas trabalhadas.
 
 ## 4. Jornada de Trabalho
-- [ ] O usuário deve conseguir consultar sua jornada de trabalho prevista.
+- [x] O usuário deve conseguir consultar sua jornada de trabalho prevista.
 - [ ] O usuário deve conseguir configurar seus horários de chegada, pausa e saída, conforme suas permissões.
 - [ ] O usuário deve conseguir editar sua jornada de trabalho, conforme suas permissões.
 

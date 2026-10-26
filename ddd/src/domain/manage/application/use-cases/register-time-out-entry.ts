@@ -3,12 +3,19 @@ import { BadRequestError } from '@src/core/entities/errors/bad-request-error'
 import { NotFoundError } from '@src/core/entities/errors/not-found-error'
 import { UniqueEntityId } from '@src/core/entities/unique-entity-id'
 import dayjs from 'dayjs'
+import timezone from 'dayjs/plugin/timezone'
+import utc from 'dayjs/plugin/utc'
 import { TimeBalance } from '../../enterprise/entities/time-balance'
 import type { EmployeeRepository } from '../repositories/employee.repository'
 import { TimeBalanceEntryRepository } from '../repositories/time-balance-entry.repository'
 import { TimeBalanceRepository } from '../repositories/time-balance.repository'
 import type { TimeEntryRepository } from '../repositories/time-entry.repository'
 import type { WorkScheduleRepository } from '../repositories/work-schedule.repository'
+
+dayjs.extend(utc)
+dayjs.extend(timezone)
+
+const WORK_SCHEDULE_TIMEZONE = 'America/Fortaleza'
 
 interface RegisterTimeOutEntryUseCaseRequest {
 	clockOut: Date
@@ -58,14 +65,14 @@ export class RegisterTimeOutEntryUseCase {
 				new BadRequestError('End the active break before clocking out.'),
 			)
 		}
-
 		if (!existingTimeEntry) {
 			return left(new BadRequestError('No active time entry found.'))
 		}
-
 		const existingTimeEntryForToday =
 			existingTimeEntry?.isClockedIn() &&
-			existingTimeEntry.clockIn.toDateString() === clockOut.toDateString()
+			dayjs(existingTimeEntry.clockIn)
+				.tz(WORK_SCHEDULE_TIMEZONE)
+				.isSame(dayjs(clockOut).tz(WORK_SCHEDULE_TIMEZONE), 'day')
 
 		if (!existingTimeEntryForToday) {
 			return left(new BadRequestError('No active time entry found.'))
@@ -85,7 +92,7 @@ export class RegisterTimeOutEntryUseCase {
 			)
 		}
 
-		const endTime = workSchedule.endTimeToDate()
+		const endTime = workSchedule.endTimeToDate(clockOut)
 
 		if (workSchedule.isDepartedEarly(clockOut)) {
 			await this.ensureTimeBalance(requesterId)

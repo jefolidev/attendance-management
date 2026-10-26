@@ -3,6 +3,7 @@ import { BadRequestError } from '@src/core/entities/errors/bad-request-error'
 import { NotFoundError } from '@src/core/entities/errors/not-found-error'
 import { UniqueEntityId } from '@src/core/entities/unique-entity-id'
 import dayjs from 'dayjs'
+import utc from 'dayjs/plugin/utc'
 import { TimeBalance } from '../../enterprise/entities/time-balance'
 import { TimeEntry, TimeEntryStage } from '../../enterprise/entities/time-entry'
 import type { EmployeeRepository } from '../repositories/employee.repository'
@@ -10,6 +11,8 @@ import type { TimeBalanceEntryRepository } from '../repositories/time-balance-en
 import type { TimeBalanceRepository } from '../repositories/time-balance.repository'
 import type { TimeEntryRepository } from '../repositories/time-entry.repository'
 import type { WorkScheduleRepository } from '../repositories/work-schedule.repository'
+
+dayjs.extend(utc)
 
 interface RegisterTimeInEntryUseCaseRequest {
 	clockIn: Date
@@ -68,9 +71,7 @@ export class RegisterTimeInEntryUseCase {
 			employeeId: requester.id,
 		})
 
-		await this.timeEntryRepository.create(timeEntry)
-
-		const startTime = dayjs(workSchedule.startTimeToDate())
+		const startTime = dayjs(workSchedule.startTimeToDate(clockIn))
 
 		if (workSchedule.isLateWithTolerance(clockIn)) {
 			const minutesLate = dayjs(clockIn).diff(startTime, 'minute')

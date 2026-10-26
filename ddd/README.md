@@ -71,30 +71,30 @@
 - [ ] Um usuário inativo não pode se autenticar nem registrar pontos.
 
 ## 2. Jornada de Trabalho
-- [ ] Cada funcionário deve possuir uma jornada de trabalho definida.
-- [ ] A jornada deve definir os horários previstos de entrada, início e fim da pausa e saída.
-- [ ] A jornada deve permitir a configuração dos dias de trabalho e descanso.
-- [ ] As alterações na jornada não devem modificar retroativamente os cálculos de períodos já encerrados.
-- [ ] O sistema deve considerar a jornada vigente na data de cada registro para calcular atrasos e saldo de horas.
+- [x] Cada funcionário deve possuir uma jornada de trabalho definida.
+- [x] A jornada deve definir os horários previstos de entrada, início e fim da pausa e saída.
+- [x] A jornada deve permitir a configuração dos dias de trabalho e descanso.
+- [x] As alterações na jornada não devem modificar retroativamente os cálculos de períodos já encerrados.
+- [x] O sistema deve considerar a jornada vigente na data de cada registro para calcular atrasos e saldo de horas.
 - [ ] A ausência de uma jornada configurada deve impedir cálculos automáticos de atrasos e saldo de horas até que exista uma regra aplicável.
 - [ ] A jornada deve permitir configurar as tolerâncias aplicáveis aos registros, conforme a política da empresa.
 
 ## 3. Registros de Ponto
-- [ ] Cada marcação deve estar vinculada a um único funcionário.
-- [ ] Cada marcação deve registrar data e hora.
-- [ ] O funcionário deve seguir uma sequência válida de marcações: entrada, início da pausa, fim da pausa e saída.
-- [ ] Não deve ser permitido registrar uma saída antes da entrada.
-- [ ] Não deve ser permitido iniciar uma pausa sem uma jornada iniciada.
-- [ ] Não deve ser permitido encerrar uma pausa sem que ela tenha sido iniciada.
-- [ ] Não deve ser permitido registrar uma segunda entrada enquanto a jornada anterior estiver aberta.
-- [ ] Uma jornada só pode ser encerrada após a entrada e o encerramento de uma pausa que tenha sido iniciada.
-- [ ] O sistema deve impedir marcações incompatíveis com o estado atual da jornada.
-- [ ] Os registros originais de ponto não devem ser excluídos ou alterados silenciosamente.
-- [ ] Toda correção deve registrar o responsável, a data, o motivo e os valores anteriores e posteriores.
-- [ ] O sistema deve armazenar e apresentar os registros de acordo com o fuso horário aplicável.
+- [x] Cada marcação deve estar vinculada a um único funcionário.
+- [x] Cada marcação deve registrar data e hora.
+- [x] O funcionário deve seguir uma sequência válida de marcações: entrada, início da pausa, fim da pausa e saída.
+- [x] Não deve ser permitido registrar uma saída antes da entrada.
+- [x] Não deve ser permitido iniciar uma pausa sem uma jornada iniciada.
+- [x] Não deve ser permitido encerrar uma pausa sem que ela tenha sido iniciada.
+- [x] Não deve ser permitido registrar uma segunda entrada enquanto a jornada anterior estiver aberta.
+- [x] Uma jornada só pode ser encerrada após a entrada e o encerramento de uma pausa que tenha sido iniciada.
+- [x] O sistema deve impedir marcações incompatíveis com o estado atual da jornada.
+- [x] Os registros originais de ponto não devem ser excluídos ou alterados silenciosamente.
+- [x] Toda correção deve registrar o responsável, a data, o motivo e os valores anteriores e posteriores.
+- [x] O sistema deve armazenar e apresentar os registros de acordo com o fuso horário aplicável.
 
 ## 4. Cálculo de Horas
-- [ ] O tempo trabalhado deve ser calculado a partir das marcações válidas de entrada, pausa, retorno e saída.
+- [x] O tempo trabalhado deve ser calculado a partir das marcações válidas de entrada, pausa, retorno e saída.
 - [ ] Os intervalos de pausa não devem ser contabilizados como horas trabalhadas quando não forem remunerados conforme as regras aplicáveis.
 - [ ] Os atrasos devem ser calculados comparando a entrada registrada com o horário previsto na jornada vigente.
 - [ ] As horas excedentes devem ser calculadas com base na jornada prevista e nas regras de apuração configuradas.

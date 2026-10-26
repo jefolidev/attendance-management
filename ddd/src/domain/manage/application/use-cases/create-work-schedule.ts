@@ -70,7 +70,7 @@ export class CreateWorkScheduleUseCase {
       endTime,
       lateTolerance,
       days,
-      breakTimes,
+      breaksPerDay: breakTimes,
       employeeId: requester.id
     })
 

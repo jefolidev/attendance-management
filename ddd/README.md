@@ -33,9 +33,9 @@
 
 ## 5. Métricas e Banco de Horas
 - [x] O usuário deve conseguir consultar o tempo acumulado em atrasos.
-- [ ] O usuário deve conseguir consultar seu saldo de horas, incluindo créditos e débitos.
+- [x] O usuário deve conseguir consultar seu saldo de horas, incluindo créditos e débitos.
 - [ ] O usuário deve conseguir consultar o histórico de movimentações do banco de horas.
-- [ ] O usuário deve conseguir consultar as compensações de horas realizadas.
+- [x] O usuário deve conseguir consultar as compensações de horas realizadas.
 - [ ] O usuário deve conseguir registrar uma compensação de horas, conforme suas permissões.
 
 ## 6. Administração e Gestão

@@ -1,15 +1,16 @@
+import 'dotenv/config';
 import Fastify from 'fastify';
-import { prismaPlugin } from './src/infra/database/prisma/prisma.plugin';
+import prismaPlugin from './src/infra/database/prisma/prisma.plugin.ts';
 
 const fastify = Fastify({
-  logger: true
 })
 
 fastify.register(prismaPlugin);
 
-fastify.listen({ port: 3000 }, function (err, address) {
+fastify.listen({ port: 3000 }, (err, address) => {
   if (err) {
-    fastify.log.error(err)
+    console.error(err)
     process.exit(1)
   }
+  console.log(`Server listening at ${address}`)
 })

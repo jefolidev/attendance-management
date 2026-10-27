@@ -1,6 +1,6 @@
-import { UniqueEntityId } from '@src/core/entities/unique-entity-id'
-import type { TimeEntryRepository } from '@src/domain/manage/application/repositories/time-entry.repository'
-import type { TimeEntry } from '@src/domain/manage/enterprise/entities/time-entry'
+import { UniqueEntityId } from '../../../src/core/entities/unique-entity-id';
+import type { TimeEntryRepository } from '../../../src/domain/manage/application/repositories/time-entry.repository';
+import type { TimeEntry } from '../../../src/domain/manage/enterprise/entities/time-entry';
 
 export class InMemoryTimeEntryRepository implements TimeEntryRepository {
 	public items: TimeEntry[] = []

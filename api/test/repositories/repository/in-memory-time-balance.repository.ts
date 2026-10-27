@@ -1,6 +1,6 @@
-import type { PaginationParams } from '@src/core/repositories/pagination'
-import type { TimeBalanceRepository } from '@src/domain/manage/application/repositories/time-balance.repository'
-import type { TimeBalance } from '@src/domain/manage/enterprise/entities/time-balance'
+import type { PaginationParams } from '../../../src/core/repositories/pagination'
+import type { TimeBalanceRepository } from '../../../src/domain/manage/application/repositories/time-balance.repository'
+import type { TimeBalance } from '../../../src/domain/manage/enterprise/entities/time-balance'
 
 export class InMemoryTimeBalanceRepository implements TimeBalanceRepository {
 	public items: TimeBalance[] = []

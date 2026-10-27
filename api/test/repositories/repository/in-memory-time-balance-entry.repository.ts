@@ -1,10 +1,10 @@
-import { UniqueEntityId } from '@src/core/entities/unique-entity-id'
-import type { TimeBalanceEntryRepository } from '@src/domain/manage/application/repositories/time-balance-entry.repository'
+import { UniqueEntityId } from '../../../src/core/entities/unique-entity-id';
+import type { TimeBalanceEntryRepository } from '../../../src/domain/manage/application/repositories/time-balance-entry.repository';
 import {
-	TimeBalanceEntry,
-	type TimeBalanceEntryReason,
-} from '@src/domain/manage/enterprise/entities/time-balance-entry'
-import type { InMemoryTimeBalanceRepository } from './in-memory-time-balance.repository'
+    TimeBalanceEntry,
+    type TimeBalanceEntryReason,
+} from '../../../src/domain/manage/enterprise/entities/time-balance-entry';
+import type { InMemoryTimeBalanceRepository } from './in-memory-time-balance.repository';
 
 export class InMemoryTimeBalanceEntryRepository
 	implements TimeBalanceEntryRepository

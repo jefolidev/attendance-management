@@ -1,10 +1,13 @@
 {
   "dependencies": {
+    "": ".",
     "@prisma/adapter-better-sqlite3": "^7.10.1",
     "@prisma/client": "7",
     "dayjs": "^1.11.23",
     "dotenv": "^18.0.8",
     "fastify": "^5.12.7",
+    "fastify-cli": "^8.0.3",
+    "fastify-plugin": "^6.0.1",
     "pg": "^8.23.1",
     "postgrator": "^8.0.0",
     "zod": "^4.6.7"
@@ -13,7 +16,8 @@
   "module": "index.ts",
   "type": "module",
   "scripts": {
-    "dev": "tsx watch",
+    "build": "tsc -p tsconfig.json",
+    "start:dev": "tsx watch index.ts",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio"

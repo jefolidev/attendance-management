@@ -1,4 +1,5 @@
-import { Either, left, right } from '@src/core/either'
+import { left, right } from '@src/core/either'
+import type { Either } from '@src/core/either'
 import { NotFoundError } from '@src/core/entities/errors/not-found-error'
 import { TimeBalance } from '../../enterprise/entities/time-balance'
 import { EmployeeRepository } from '../repositories/employee.repository'

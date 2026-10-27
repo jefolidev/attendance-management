@@ -1,5 +1,5 @@
-import type { WorkScheduleRepository } from '@src/domain/manage/application/repositories/work-schedule.repository'
-import type { WorkSchedule } from '@src/domain/manage/enterprise/entities/work-schedule'
+import type { WorkScheduleRepository } from '../../../src/domain/manage/application/repositories/work-schedule.repository';
+import type { WorkSchedule } from '../../../src/domain/manage/enterprise/entities/work-schedule';
 
 export class InMemoryWorkScheduleRepository implements WorkScheduleRepository {
 	public items: WorkSchedule[] = []

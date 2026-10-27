@@ -1,7 +1,7 @@
-import type { Optional } from '@src/core/entities/types/optional'
-import { Entity } from '../../../../core/entities/entity'
-import type { UniqueEntityId } from '../../../../core/entities/unique-entity-id'
-import type { TimeBalanceEntryProps } from './time-balance-entry'
+import { Entity } from '../../../../core/entities/entity';
+import type { Optional } from '../../../../core/entities/types/optional';
+import type { UniqueEntityId } from '../../../../core/entities/unique-entity-id';
+import type { TimeBalanceEntryProps } from './time-balance-entry';
 
 interface TimeBalanceProps {
 	employeeId: UniqueEntityId

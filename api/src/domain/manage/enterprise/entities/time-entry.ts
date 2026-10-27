@@ -1,6 +1,6 @@
-import type { Optional } from '@src/core/entities/types/optional'
-import { AggregateRoot } from '../../../../core/entities/aggregate'
-import type { UniqueEntityId } from '../../../../core/entities/unique-entity-id'
+import { AggregateRoot } from '../../../../core/entities/aggregate';
+import type { Optional } from '../../../../core/entities/types/optional';
+import type { UniqueEntityId } from '../../../../core/entities/unique-entity-id';
 
 export enum TimeEntryStage {
 	CLOCKED_IN = 'clocked-in',

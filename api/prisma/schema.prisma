@@ -12,37 +12,131 @@ datasource db {
   provider = "sqlite"
 }
 
+enum Role {
+  ADMIN
+  EMPLOYEE
+}
+
 model Employee {
   id       String @id @default(cuid())
   username String
   password String
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  role Role @default(EMPLOYEE)
 
-  TimeEntries   TimeEntry[]
-  workSchedules WorkSchedule[]
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  timeEntries        TimeEntry[]
+  timeBalanceEntries TimeBalanceEntry[]
+
+  workSchedule WorkSchedule?
+  timeBalance  TimeBalance?
+
+  @@map("employees")
+}
+
+enum TimeBalanceEntryType {
+  CREDIT
+  DEBIT
+}
+
+enum TimeBalanceEntryReason {
+  LATE_ARRIVAL
+  EARLY_DEPARTURE
+  OVERTIME
+  COMPENSATION
+  EXTRA
+  MANUAL_ADJUSTMENT
+}
+
+model TimeBalanceEntry {
+  id String @id @default(cuid())
+
+  type   TimeBalanceEntryType
+  reason TimeBalanceEntryReason
+
+  durationInMinutes Int @map("duration_in_minutes")
+
+  employeeId String @map("employee_id")
+
+  timeBalanceId String?
+
+  employee    Employee     @relation(fields: [employeeId], references: [id])
+  timeBalance TimeBalance? @relation(fields: [timeBalanceId], references: [id])
+
+  @@map("time_balance_entries")
+}
+
+model TimeBalance {
+  id String @id @default(cuid())
+
+  events         TimeBalanceEntry[]
+  balanceMinutes Int                @map("balance_minutes")
+
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  employeeId String   @unique @map("employee_id")
+  employee   Employee @relation(fields: [employeeId], references: [id])
+
+  @@map("time_balances")
+}
+
+enum TimeEntryStage {
+  CLOCKED_IN
+  CLOCKED_OUT
+  ON_BREAK
 }
 
 model TimeEntry {
   id String @id @default(cuid())
 
-  clockIn  DateTime
-  clockOut DateTime?
+  clockIn  DateTime  @map("clock_in")
+  clockOut DateTime? @map("clock_out")
 
-  breakStart DateTime?
-  breakEnd   DateTime?
+  breaks Json
+
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   employeeId String
   employee   Employee @relation(fields: [employeeId], references: [id])
 }
 
+model WorkDays {
+  id Int @id @default(autoincrement())
+
+  monday    Boolean
+  tuesday   Boolean
+  wednesday Boolean
+  thursday  Boolean
+  friday    Boolean
+  saturday  Boolean
+  sunday    Boolean
+
+  workDaysWorkSchedules WorkDaysWorkSchedule[]
+}
+
+model WorkDaysWorkSchedule {
+  workDaysId     Int          @map("work_days_id")
+  workScheduleId String       @map("work_schedule_id")
+  workDays       WorkDays     @relation(fields: [workDaysId], references: [id])
+  workSchedule   WorkSchedule @relation(fields: [workScheduleId], references: [id])
+
+  @@id([workDaysId, workScheduleId])
+}
+
 model WorkSchedule {
   id String @id @default(cuid())
 
-  startTime DateTime
-  endTime   DateTime
+  startTime String @map("start_time")
+  endTime   String @map("end_time")
 
-  employeeId String
+  lateTolerance Int @map("late_tolerance")
+
+  breaksPerDay Int @map("breaks_per_day")
+
+  employeeId String   @unique
   employee   Employee @relation(fields: [employeeId], references: [id])
+
+  workDaysWorkSchedules WorkDaysWorkSchedule[]
 }

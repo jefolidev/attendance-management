@@ -20,7 +20,7 @@ export interface TimeEntryProps {
 
 	employeeId: UniqueEntityId
 
-	updatedAt?: Date
+	updatedAt?: Date | undefined | null
 }
 
 export class TimeEntry extends AggregateRoot<TimeEntryProps> {
@@ -50,7 +50,7 @@ export class TimeEntry extends AggregateRoot<TimeEntryProps> {
 		return this.props.employeeId
 	}
 
-	get updatedAt(): Date | undefined {
+	get updatedAt(): Date | undefined | null {
 		return this.props.updatedAt
 	}
 

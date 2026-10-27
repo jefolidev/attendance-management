@@ -19,13 +19,13 @@ enum Role {
 
 model Employee {
   id       String @id @default(cuid())
-  username String
+  username String @unique
   password String
 
   role Role @default(EMPLOYEE)
 
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime? @updatedAt @map("updated_at")
 
   timeEntries        TimeEntry[]
   timeBalanceEntries TimeBalanceEntry[]
@@ -60,7 +60,7 @@ model TimeBalanceEntry {
 
   employeeId String @map("employee_id")
 
-  timeBalanceId String?
+  timeBalanceId String? @map("time_balance_id")
 
   employee    Employee     @relation(fields: [employeeId], references: [id])
   timeBalance TimeBalance? @relation(fields: [timeBalanceId], references: [id])
@@ -74,7 +74,7 @@ model TimeBalance {
   events         TimeBalanceEntry[]
   balanceMinutes Int                @map("balance_minutes")
 
-  updatedAt DateTime @updatedAt @map("updated_at")
+  updatedAt DateTime? @updatedAt @map("updated_at")
 
   employeeId String   @unique @map("employee_id")
   employee   Employee @relation(fields: [employeeId], references: [id])
@@ -95,8 +95,9 @@ model TimeEntry {
   clockOut DateTime? @map("clock_out")
 
   breaks Json
+  status TimeEntryStage
 
-  updatedAt DateTime @updatedAt @map("updated_at")
+  updatedAt DateTime? @updatedAt @map("updated_at")
 
   employeeId String
   employee   Employee @relation(fields: [employeeId], references: [id])

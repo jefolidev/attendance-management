@@ -9,7 +9,7 @@ export interface EmployeeProps {
   role: "ADMIN" | "EMPLOYEE"
 
   createdAt: Date
-  updatedAt?: Date
+  updatedAt?: Date | null
 }
 
 export class Employee extends AggregateRoot<EmployeeProps> {
@@ -29,8 +29,8 @@ export class Employee extends AggregateRoot<EmployeeProps> {
     return this.props.createdAt
   }
 
-  get updatedAt(): Date | undefined {
-    return this.props.updatedAt
+  get updatedAt(): Date | undefined | null {
+    return this.props.updatedAt 
   }
 
   isAdmin(): boolean {

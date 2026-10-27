@@ -10,7 +10,7 @@ interface TimeBalanceProps {
 
 	balanceMinutes: number
 
-	updatedAt?: Date
+	updatedAt?: Date | null
 }
 
 export class TimeBalance extends Entity<TimeBalanceProps> {
@@ -26,7 +26,7 @@ export class TimeBalance extends Entity<TimeBalanceProps> {
 		return this.props.balanceMinutes
 	}
 
-	get updatedAt(): Date | undefined {
+	get updatedAt(): Date | undefined | null {
 		return this.props.updatedAt
 	}
 

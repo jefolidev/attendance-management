@@ -1,8 +1,24 @@
 {
+  "$schema": "https://www.schemastore.org/tsconfig",
+  "_version": "24.0.0",
   "compilerOptions": {
-    "module": "ESNext",
-    "declaration": true,
-    "moduleResolution": "bundler",
+    "lib": [
+      "es2024",
+      "ESNext.Array",
+      "ESNext.Collection",
+      "ESNext.Error",
+      "ESNext.Iterator",
+      "ESNext.Promise"
+    ],
+    "module": "nodenext",
+    "target": "es2024",
+    "types": [
+      "node"
+    ],
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "moduleResolution": "node16",
     "paths": {
       "@src/*": [
         "./src/*"
@@ -11,26 +27,11 @@
         "./test/*"
       ]
     },
-    "target": "ES2023",
-    "strict": true,
-    "esModuleInterop": true,
-    "ignoreDeprecations": "6.0",
-    // Environment setup & latest features
-    "lib": [
-      "ESNext"
-    ],
-    "moduleDetection": "force",
-    "jsx": "react-jsx",
-    "allowJs": true,
-    "types": [
-      "bun"
-    ],
     // Bundler mode
     "allowImportingTsExtensions": true,
     "verbatimModuleSyntax": true,
     "noEmit": true,
     // Best practices
-    "skipLibCheck": true,
     "noFallthroughCasesInSwitch": true,
     "noUncheckedIndexedAccess": true,
     "noImplicitOverride": true,
@@ -40,8 +41,9 @@
     "noPropertyAccessFromIndexSignature": false
   },
   "include": [
-    "src/**/*.ts"
-,       "src/@types/fastify/index.js"  ],
+    "src/**/*.ts",
+    "src/@types/fastify/index.js"
+  ],
   "exclude": [
     "src/**/*.spec.ts",
     "test/**/*.ts",

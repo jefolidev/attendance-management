@@ -1,4 +1,4 @@
-import type { PrismaClient } from "@prisma/client/extension";
+import type { Prisma, PrismaClient } from "../../../../../generated/prisma/client.ts";
 import type { TimeEntryRepository } from "@src/domain/manage/application/repositories/time-entry.repository";
 import type { TimeEntry } from "@src/domain/manage/enterprise/entities/time-entry";
 import { PrismaTimeEntryMapper } from "../../mappers/prisma-time-entry.mapper";
@@ -7,22 +7,21 @@ export class PrismaTimeEntryRepository implements TimeEntryRepository {
   constructor(private readonly prisma: PrismaClient) {}
 
     async create(timeEntry: TimeEntry): Promise<void> {
+        const data = PrismaTimeEntryMapper.toPrisma(timeEntry);
+
         await this.prisma.timeEntry.create({
             data: {
-                id: timeEntry.id,
-                employeeId: timeEntry.employeeId,
-                clockIn: timeEntry.clockIn,
-                clockOut: timeEntry.clockOut,
-                updatedAt: timeEntry.updatedAt,
+                ...data,
+                breaks: JSON.parse(JSON.stringify(data.breaks)) as Prisma.InputJsonValue,
             },
         });
     }
     async findById(id: string): Promise<TimeEntry | null> {
-        const timeEntry = await this.prisma.findUnique({
+        const timeEntry = await this.prisma.timeEntry.findUnique({
             where: { id },
         });
         
-        return PrismaTimeEntryMapper.toDomain(timeEntry);
+        return timeEntry ? PrismaTimeEntryMapper.toDomain(timeEntry) : null;
     }
     async findByEmployeeId(employeeId: string): Promise<TimeEntry[]> {
         const timeEntries = await this.prisma.timeEntry.findMany({
@@ -34,10 +33,10 @@ export class PrismaTimeEntryRepository implements TimeEntryRepository {
        
     async findInProgressByEmployeeId(employeeId: string): Promise<TimeEntry | null> {
         const timeEntry = await this.prisma.timeEntry.findFirst({
-            where: { employeeId, clockOut: { is: null } },
+            where: { employeeId, clockOut: null },
         })
 
-        return PrismaTimeEntryMapper.toDomain(timeEntry);
+        return timeEntry ? PrismaTimeEntryMapper.toDomain(timeEntry) : null;
     }
 
     async findCompletedByEmployeeId(employeeId: string): Promise<TimeEntry[]> {
@@ -49,10 +48,17 @@ export class PrismaTimeEntryRepository implements TimeEntryRepository {
     }
 
     async update(timeEntry: TimeEntry): Promise<void> {
+        const data = PrismaTimeEntryMapper.toPrisma(timeEntry);
+
         await this.prisma.timeEntry.update({
-            where: { id: timeEntry.id },
+            where: { id: timeEntry.id.toString() },
             data: {
-                ...timeEntry
+                employeeId: data.employeeId,
+                clockIn: data.clockIn,
+                clockOut: data.clockOut,
+                breaks: JSON.parse(JSON.stringify(data.breaks)) as Prisma.InputJsonValue,
+                status: data.status,
+                updatedAt: data.updatedAt,
             },
         })
         

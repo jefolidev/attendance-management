@@ -58,6 +58,8 @@ model TimeBalanceEntry {
 
   durationInMinutes Int @map("duration_in_minutes")
 
+  createdAt DateTime @default(now()) @map("created_at")
+
   employeeId String @map("employee_id")
 
   timeBalanceId String? @map("time_balance_id")

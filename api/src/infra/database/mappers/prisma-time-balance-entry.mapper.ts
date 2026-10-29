@@ -21,6 +21,7 @@ export class PrismaTimeBalanceEntryMapper {
       type: entry.type as TimeBalanceEntryType,
       reason: entry.reason as TimeBalanceEntryReason,
       durationInMinutes: entry.durationInMinutes,
+      createdAt: entry.createdAt,
       employeeId: entry.employeeId.toString(),
       timeBalanceId: entry.timeBalanceId.toString(),
     };
@@ -38,7 +39,7 @@ export class PrismaTimeBalanceEntryMapper {
         type: raw.type as DomainType,
         reason: raw.reason as DomainReason,
         durationInMinutes: raw.durationInMinutes,
-        createdAt: new Date(),
+        createdAt: raw.createdAt,
       },
       new UniqueEntityId(raw.id),
     );

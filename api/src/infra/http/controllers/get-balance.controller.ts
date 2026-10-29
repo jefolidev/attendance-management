@@ -1,20 +1,29 @@
 import type { GetBalanceUseCase } from "@src/domain/manage/application/use-cases/get-balance";
 import type { TimeBalance } from "@src/domain/manage/enterprise/entities/time-balance";
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
+import dayjs from "dayjs";
+import timezone from "dayjs/plugin/timezone";
+import utc from "dayjs/plugin/utc";
+import { WORK_SCHEDULE_TIMEZONE } from "@src/core/time/work-schedule-timezone";
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 function serializeBalance(balance: TimeBalance) {
   return {
     id: balance.id.toString(),
     employeeId: balance.employeeId.toString(),
     balanceMinutes: balance.balanceMinutes,
-    updatedAt: balance.updatedAt,
+    updatedAt: balance.updatedAt
+      ? dayjs(balance.updatedAt).tz(WORK_SCHEDULE_TIMEZONE).format()
+      : null,
     events: balance.events.map((event) => ({
       employeeId: event.employeeId.toString(),
       timeBalanceId: event.timeBalanceId.toString(),
       type: event.type,
       reason: event.reason,
       durationInMinutes: event.durationInMinutes,
-      createdAt: event.createdAt,
+      createdAt: dayjs(event.createdAt).tz(WORK_SCHEDULE_TIMEZONE).format(),
     })),
   };
 }

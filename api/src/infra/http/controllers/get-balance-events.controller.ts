@@ -1,5 +1,12 @@
 import type { GetBalanceEventsUseCase } from "@src/domain/manage/application/use-cases/get-balance-events";
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
+import dayjs from "dayjs";
+import timezone from "dayjs/plugin/timezone";
+import utc from "dayjs/plugin/utc";
+import { WORK_SCHEDULE_TIMEZONE } from "@src/core/time/work-schedule-timezone";
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 export class GetBalanceEventsController {
   constructor(
@@ -31,7 +38,9 @@ export class GetBalanceEventsController {
           type: event.type,
           reason: event.reason,
           durationInMinutes: event.durationInMinutes,
-          createdAt: event.createdAt,
+          createdAt: dayjs(event.createdAt)
+            .tz(WORK_SCHEDULE_TIMEZONE)
+            .format(),
         })),
       });
     } catch (error) {

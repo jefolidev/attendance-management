@@ -79,21 +79,32 @@ export class RegisterTimeInEntryUseCase {
 			workSchedule.startTimeToDate(clockIn),
 		).tz(WORK_SCHEDULE_TIMEZONE)
 
-		if (workSchedule.isLateWithTolerance(clockIn)) {
-			const minutesLate = clockInAt.diff(startTime, 'minute')
+		let timeEntryCreated = false
 
-			await this.ensureTimeBalance(requesterId)
-			await this.timeBalanceEntryRepository.addDebitEntry(
-				requesterId,
-				minutesLate,
-				'LATE_ARRIVAL',
-			)
-		} else if (workSchedule.isEarly(clockIn)) {
-			const minutesEarly = startTime.diff(clockInAt, 'minute')
-			await this.creditExtraTime(requesterId, minutesEarly)
+		try {
+			await this.timeEntryRepository.create(timeEntry)
+			timeEntryCreated = true
+
+			if (workSchedule.isLateWithTolerance(clockIn)) {
+				const minutesLate = clockInAt.diff(startTime, 'minute')
+
+				await this.ensureTimeBalance(requesterId)
+				await this.timeBalanceEntryRepository.addDebitEntry(
+					requesterId,
+					minutesLate,
+					'LATE_ARRIVAL',
+				)
+			} else if (workSchedule.isEarly(clockIn)) {
+				const minutesEarly = startTime.diff(clockInAt, 'minute')
+				await this.creditExtraTime(requesterId, minutesEarly)
+			}
+		} catch (error) {
+			if (timeEntryCreated) {
+				await this.timeEntryRepository.delete(timeEntry.id.toString())
+			}
+
+			throw error
 		}
-
-		await this.timeEntryRepository.create(timeEntry)
 
 		return right({ timeEntryId: timeEntry.id.toString() })
 	}

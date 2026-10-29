@@ -103,6 +103,8 @@ model TimeEntry {
 
   employeeId String
   employee   Employee @relation(fields: [employeeId], references: [id])
+
+  @@map("time-entry")
 }
 
 model WorkDays {
@@ -117,6 +119,8 @@ model WorkDays {
   sunday    Boolean
 
   workDaysWorkSchedules WorkDaysWorkSchedule[]
+
+  @@map("work-days")
 }
 
 model WorkDaysWorkSchedule {
@@ -126,6 +130,7 @@ model WorkDaysWorkSchedule {
   workSchedule   WorkSchedule @relation(fields: [workScheduleId], references: [id])
 
   @@id([workDaysId, workScheduleId])
+  @@map("work-days-work-schedule")
 }
 
 model WorkSchedule {
@@ -142,4 +147,6 @@ model WorkSchedule {
   employee   Employee @relation(fields: [employeeId], references: [id])
 
   workDaysWorkSchedules WorkDaysWorkSchedule[]
+
+  @@map("work-schedule")
 }

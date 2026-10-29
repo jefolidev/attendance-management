@@ -55,29 +55,33 @@ export class RegisterBreakEntryUseCase {
 
 		const existingBreak = existingTimeEntryInBreak?.haveAnActiveBreak()
 
-		if (!existingBreak) {
-			if (!existingTimeEntryInBreak || !existingTimeEntryInBreak.isClockedIn())
-				return left(
-					new NotFoundError(
-						'No active time entry found for this employee to break out.',
-					),
-				)
-
-			if (existingTimeEntryInBreak.breaks.length >= workSchedule.breaksPerDay) {
-				return left(
-					new BadRequestError(
-						'Maximum number of breaks reached for this employee.',
-					),
-				)
-			}
-
-			existingTimeEntryInBreak.startBreak(breakIn)
+		if (existingBreak) {
+			existingTimeEntryInBreak.endBreak(breakIn)
 			await this.timeEntryRepository.update(existingTimeEntryInBreak)
 
 			return right({ timeEntryId: existingTimeEntryInBreak.id.toString() })
 		}
 
-		existingTimeEntryInBreak.endBreak(breakIn)
+		if (!existingTimeEntryInBreak.isClockedIn()) {
+			return left(
+				new NotFoundError(
+					'No active time entry found for this employee to break out.',
+				),
+			)
+		}
+
+		const usedBreaks = existingTimeEntryInBreak.breaks.length
+		const allowedBreaks = workSchedule.breaksPerDay
+
+		if (usedBreaks >= allowedBreaks) {
+			return left(
+				new BadRequestError(
+					'Maximum number of breaks reached for this employee.',
+				),
+			)
+		}
+
+		existingTimeEntryInBreak.startBreak(breakIn)
 		await this.timeEntryRepository.update(existingTimeEntryInBreak)
 
 		return right({ timeEntryId: existingTimeEntryInBreak.id.toString() })

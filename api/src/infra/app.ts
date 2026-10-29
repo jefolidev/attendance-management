@@ -9,7 +9,8 @@ import cryptographyPlugin from "./plugins/cryptography.ts";
 import jwtPlugin from "./plugins/jwt.ts";
 
 import fastifyJwt from "@fastify/jwt";
-import routes from "./http/routes/employees/index.ts";
+import fastifyCookie from "@fastify/cookie";
+import routes from "./http/routes/index.ts";
 
 export function buildApp(): FastifyInstance {
   const app = fastify().withTypeProvider<ZodTypeProvider>();
@@ -26,6 +27,7 @@ export function buildApp(): FastifyInstance {
   app.register(fastifyJwt, {
     secret: process.env.JWT_SECRET || "ronaldo",
   });
+  app.register(fastifyCookie);
 
 // [ PLUGINS ]
   app.register(cryptographyPlugin);

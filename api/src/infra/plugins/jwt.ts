@@ -7,6 +7,7 @@ declare module "fastify" {
       encrypt: (request: Record<string, unknown>) => string;
       verifyToken: (token: string) => Record<string, unknown>;
       getTokenByCookieOrHeader: (request: FastifyRequest) => string | null;
+      validate: (request: FastifyRequest) => void;
     }
   }
 }
@@ -15,7 +16,7 @@ const jwtPlugin: FastifyPluginAsync = async (fastify) => {
   fastify.decorate("jwtAuth", {
     
     getTokenByCookieOrHeader: (request: FastifyRequest): string | null => {
-      const tokenFromCookie = request?.cookies?.['acess_token'];
+      const tokenFromCookie = request.cookies?.access_token;
 
       if(tokenFromCookie) 
         return tokenFromCookie
@@ -28,7 +29,7 @@ const jwtPlugin: FastifyPluginAsync = async (fastify) => {
       return null
     },                                                   
     
-    validate: (request: FastifyRequest, payload: string) => {
+    validate: (request: FastifyRequest) => {
       try {
         const token = fastify.jwtAuth.getTokenByCookieOrHeader(request);
 
@@ -42,9 +43,7 @@ const jwtPlugin: FastifyPluginAsync = async (fastify) => {
     },
 
     encrypt: (payload: Record<string, unknown>) => {
-      return fastify.jwt.sign({
-        payload
-      });
+      return fastify.jwt.sign(payload);
     },
 
     verifyToken: (token: string) => {

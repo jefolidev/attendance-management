@@ -1,9 +1,10 @@
 import { type FastifyPluginAsync } from "fastify";
 import fp from 'fastify-plugin';
+import { BcryptHasher } from "../cryptography/bcrypt-hasher.ts";
 
 declare module "fastify" {
   interface FastifyInstance {
-    bcrypt: {
+    cryptography: {
       hash: (password: string) => Promise<string>;
       compare: (password: string, hashedPassword: string) => Promise<boolean>;
     }
@@ -11,14 +12,15 @@ declare module "fastify" {
 }
 
 const cryptographyPlugin: FastifyPluginAsync = async (fastify) => {
-    fastify.decorate("cryptography", {
+  const hasher = new BcryptHasher();
 
+  fastify.decorate("cryptography", {
     hash: (password: string) => {
-      return fastify.bcrypt.hash(password);
+      return hasher.hash(password);
     },
 
     compare: (password: string, hashedPassword: string) => {
-      return fastify.bcrypt.compare(password, hashedPassword);
+      return hasher.compare(password, hashedPassword);
     }
   });
 };

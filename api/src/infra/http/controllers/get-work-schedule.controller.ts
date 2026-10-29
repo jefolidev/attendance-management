@@ -1,6 +1,6 @@
-import { NotFoundError } from "@src/core/entities/errors/not-found-error";
 import type { GetWorkScheduleUseCase } from "@src/domain/manage/application/use-cases/get-work-schedule";
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
+import { presentWorkSchedule } from "../presenters/work-schedule.presenter";
 
 export class GetWorkScheduleController {
   constructor(
@@ -22,14 +22,10 @@ export class GetWorkScheduleController {
       });
 
       if (result.isLeft()) {
-        const error = result.value;
-
-        if (error instanceof NotFoundError) {
-          return reply.status(404).send({ error: error.message });
-        }
+        return reply.status(404).send({ error: result.value.message });
       }
 
-      return reply.status(200).send(result.value);
+      return reply.status(200).send(presentWorkSchedule(result.value));
     } catch (error) {
       return reply.status(400).send({
         error: error instanceof Error ? error.message : "An unexpected error occurred",

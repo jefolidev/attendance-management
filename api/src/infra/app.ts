@@ -3,7 +3,12 @@ import prismaPlugin from "./database/prisma/prisma.plugin.ts";
 
 import fastifyCors from "@fastify/cors";
 import { serializerCompiler, validatorCompiler, type ZodTypeProvider } from "fastify-type-provider-zod";
-import cookiesPlugin from "./plugins/cookies.plugin.ts";
+
+import cookiesPlugin from "./plugins/cookies.ts";
+import cryptographyPlugin from "./plugins/cryptography.ts";
+import jwtPlugin from "./plugins/jwt.ts";
+
+import fastifyJwt from "@fastify/jwt";
 
 export function buildApp(): FastifyInstance {
   const app = fastify().withTypeProvider<ZodTypeProvider>();
@@ -17,6 +22,12 @@ export function buildApp(): FastifyInstance {
     credentials: true,
   })
 
+  app.register(fastifyJwt, {
+    secret: process.env.JWT_SECRET || "ronaldo",
+  });
+
+  app.register(cryptographyPlugin);
+  app.register(jwtPlugin)
   app.register(prismaPlugin);
   app.register(cookiesPlugin);
 

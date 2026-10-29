@@ -32,7 +32,7 @@ export class PrismaTimeEntryRepository implements TimeEntryRepository {
         return timeEntries.map(PrismaTimeEntryMapper.toDomain);
     }
        
-    async findInProgressByEmployeeId(employeeId: string): Promise<TimeEntry | null> {
+    async findInProgressByEmployeeId(employeeId: string): Promise<TimeEntry | null> {o
         const timeEntry = await this.prisma.timeEntry.findFirst({
             where: { employeeId, clockOut: { is: null } },
         })

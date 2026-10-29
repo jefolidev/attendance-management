@@ -1,9 +1,11 @@
 import type { FastifyPluginAsync } from "fastify";
 import createEmployeeRoute from "./employees/create-employee.routes";
+import createWorkScheduleRoute from "./employees/create-work-schedule.routes";
 import loginRoute from "./employees/login.routes";
 
 const routes: FastifyPluginAsync = async (app) => {
   app.register(createEmployeeRoute);
+  app.register(createWorkScheduleRoute);
   app.register(loginRoute);
 }
 

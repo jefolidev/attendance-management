@@ -11,7 +11,7 @@ interface CreateWorkScheduleUseCaseRequest {
   endTime: string
 
   lateTolerance: number
-  breakTimes: number
+  breaksPerDay: number
 
   days: number[]
 
@@ -24,7 +24,7 @@ export class CreateWorkScheduleUseCase {
   constructor(private readonly workscheduleRepository: WorkScheduleRepository, private readonly employeeRepository: EmployeeRepository) {}
 
   async execute(request: CreateWorkScheduleUseCaseRequest): Promise<CreateWorkScheduleUseCaseResponse> {
-    const { days, endTime, lateTolerance, requesterId, startTime, breakTimes } = request
+    const { days, endTime, lateTolerance, requesterId, startTime, breaksPerDay } = request
 
     const requester = await this.employeeRepository.findById(requesterId)
 
@@ -53,7 +53,7 @@ export class CreateWorkScheduleUseCase {
       return left(new BadRequestError("Late tolerance must be a positive number"))
     }
 
-    if(breakTimes < 0) {
+    if(breaksPerDay < 0) {
       return left(new BadRequestError("Break times must be a positive number"))
     }
 
@@ -70,7 +70,7 @@ export class CreateWorkScheduleUseCase {
       endTime,
       lateTolerance,
       days,
-      breaksPerDay: breakTimes,
+      breaksPerDay: breaksPerDay,
       employeeId: requester.id
     })
 

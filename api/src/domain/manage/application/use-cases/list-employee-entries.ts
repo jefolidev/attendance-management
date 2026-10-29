@@ -102,6 +102,7 @@ export class ListEmployeeEntriesUseCase {
 				const entriesAndStatistics: EntriesAndStatisticsProps = {
 					timeEntryStage: entry.status,
 					occurredAt: date,
+					breaks: entry.breaks,
 					entryMinutesEarly,
 					entryMinutesLate,
 					departureMinutesEarly,

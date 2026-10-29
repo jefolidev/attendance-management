@@ -1,9 +1,13 @@
 import { ValueObject } from '@src/core/entities/value-object'
-import type { TimeEntryStage } from '@src/domain/manage/enterprise/entities/time-entry'
+import type {
+	TimeEntryBreaks,
+	TimeEntryStage,
+} from '@src/domain/manage/enterprise/entities/time-entry'
 
 export interface EntriesAndStatisticsProps {
 	timeEntryStage: TimeEntryStage
 	occurredAt: Date
+	breaks: TimeEntryBreaks
 	entryMinutesEarly: number
 	entryMinutesLate: number
 	departureMinutesEarly: number
@@ -18,6 +22,10 @@ export class EntriesAndStatistics extends ValueObject<EntriesAndStatisticsProps>
 
 	get occurredAt() {
 		return this.props.occurredAt
+	}
+
+	get breaks() {
+		return this.props.breaks
 	}
 
 	get entryMinutesEarly() {

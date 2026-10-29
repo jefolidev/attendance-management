@@ -3,15 +3,18 @@ import fp from 'fastify-plugin';
 
 declare module "fastify" {
   interface FastifyInstance {
-    getTokenByCookieOrHeader: (request: FastifyRequest) => string;
-    verifyToken: (request: FastifyRequest) => Promise<void>;
+    jwtAuth:{ 
+      encrypt: (request: Record<string, unknown>) => string;
+      verifyToken: (token: string) => Record<string, unknown>;
+      getTokenByCookieOrHeader: (request: FastifyRequest) => string | null;
+    }
   }
 }
 
 const jwtPlugin: FastifyPluginAsync = async (fastify) => {
   fastify.decorate("jwtAuth", {
     
-    getTokenByCookieOrHeader: (request: FastifyRequest) => {
+    getTokenByCookieOrHeader: (request: FastifyRequest): string | null => {
       const tokenFromCookie = request?.cookies?.['acess_token'];
 
       if(tokenFromCookie) 
@@ -27,7 +30,7 @@ const jwtPlugin: FastifyPluginAsync = async (fastify) => {
     
     validate: (request: FastifyRequest, payload: string) => {
       try {
-        const token = fastify.getTokenByCookieOrHeader(request);
+        const token = fastify.jwtAuth.getTokenByCookieOrHeader(request);
 
         if(!token) {
           throw new Error("Token not found");
@@ -36,7 +39,18 @@ const jwtPlugin: FastifyPluginAsync = async (fastify) => {
       catch (error) {
         throw new Error("Invalid token");
       }
-    }
+    },
+
+    encrypt: (payload: Record<string, unknown>) => {
+      return fastify.jwt.sign({
+        payload
+      });
+    },
+
+    verifyToken: (token: string) => {
+      return fastify.jwt.verify(token);
+    },
+
   }
 )}
 

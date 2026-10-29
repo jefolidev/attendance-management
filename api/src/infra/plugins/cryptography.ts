@@ -3,22 +3,22 @@ import fp from 'fastify-plugin';
 
 declare module "fastify" {
   interface FastifyInstance {
-    encrypt: (request: FastifyRequest) => string;
-    verifyToken: (request: FastifyRequest) => Promise<void>;
+    bcrypt: {
+      hash: (password: string) => Promise<string>;
+      compare: (password: string, hashedPassword: string) => Promise<boolean>;
+    }
   }
 }
 
 const cryptographyPlugin: FastifyPluginAsync = async (fastify) => {
     fastify.decorate("cryptography", {
-      
-    encrypt: (payload: Record<string, unknown>) => {
-      return fastify.jwt.sign({
-        payload
-      });
+
+    hash: (password: string) => {
+      return fastify.bcrypt.hash(password);
     },
 
-    verifyToken:  (token: string) => {
-      return fastify.jwt.verify(token);
+    compare: (password: string, hashedPassword: string) => {
+      return fastify.bcrypt.compare(password, hashedPassword);
     }
   });
 };

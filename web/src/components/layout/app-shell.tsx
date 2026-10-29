@@ -1,9 +1,11 @@
 import { Menu } from 'lucide-react'
 import { Outlet } from 'react-router-dom'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 import { useAuth } from '@/features/auth/use-auth'
 import { Sidebar } from './sidebar'
+import { ThemeToggle } from './theme-toggle'
 
 export function AppShell() {
   const { employee } = useAuth()
@@ -31,7 +33,12 @@ export function AppShell() {
               </Sheet>
               <span className="text-sm text-muted-foreground">Olá, <span className="font-medium text-foreground">{employee?.username}</span></span>
             </div>
-            <span className="hidden text-xs text-muted-foreground sm:block">Registro interno de jornada</span>
+            <div className="flex items-center gap-2">
+              <ThemeToggle />
+              <Avatar className="size-8">
+                <AvatarFallback className="bg-primary/10 text-xs font-semibold text-primary">{employee?.username?.slice(0, 2).toUpperCase()}</AvatarFallback>
+              </Avatar>
+            </div>
           </header>
 
           <main className="flex-1 px-4 py-8 sm:px-6 lg:px-10 lg:py-10">

@@ -1,16 +1,75 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useEffect, useMemo, useState } from 'react'
-import { toast } from 'sonner'
+import { ArrowRight, CheckCircle2, Clock3 } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { EmptyState } from '@/components/shared/empty-state'
 import { LoadingState } from '@/components/shared/loading-state'
-import { PageHeader } from '@/components/shared/page-header'
 import { TimeClockAction } from '@/features/timeclock/components/time-clock-action'
-import { TodayRecords } from '@/features/timeclock/components/today-records'
-import { getErrorMessage, formatDate } from '@/lib/formatters'
-import { getWorkSchedule } from '@/services/work-schedule-service'
-import { getEntries, registerTimeIn, registerTimeOut, toggleBreak, type DayEntry } from '@/services/timeclock-service'
+import { useTimeClockStatus } from '@/features/timeclock/hooks/use-time-clock-status'
+import { useAuth } from '@/features/auth/use-auth'
+import { formatDate, formatMinutes, formatTime } from '@/lib/formatters'
+
+export function HomePage() {
+  const { employee } = useAuth()
+  const clock = useTimeClockStatus()
+  const firstName = employee?.username || 'você'
+  const now = useCurrentTime()
+
+  if (clock.isLoading) {
+    return <div className="mx-auto max-w-5xl space-y-8"><LoadingState rows={3} /></div>
+  }
+
+  if (clock.isError) {
+    return <EmptyState title="Não foi possível carregar o seu dia" description="Verifique se a API está disponível e tente novamente." action={<Button onClick={() => void clock.refetch()}>Tentar novamente</Button>} />
+  }
+
+  return (
+    <div className="state-enter mx-auto max-w-5xl">
+      {clock.status === 'not-started' && (
+        <section className="flex min-h-[calc(100svh-11rem)] flex-col items-center justify-center text-center">
+          <span className="mb-7 grid size-12 place-items-center rounded-2xl bg-primary/10 text-primary"><Clock3 className="size-6" /></span>
+          <p className="mb-3 text-sm font-medium text-muted-foreground">{formatDate(now)}</p>
+          <h1 className="max-w-2xl text-3xl font-semibold tracking-[-0.04em] text-foreground sm:text-5xl">Bem-vindo(a), {firstName}!<br />Vamos dar início ao trabalho?</h1>
+          <p className="mt-4 max-w-md text-sm leading-6 text-muted-foreground">Quando estiver pronto, registre sua entrada para começar a jornada de hoje.</p>
+          <div className="mt-10 w-full"><TimeClockAction {...clockActionProps(clock)} /></div>
+          <ActionFeedback action={clock.lastAction} />
+        </section>
+      )}
+
+      {(clock.status === 'working' || clock.status === 'on-break') && (
+        <section className="mx-auto flex min-h-[calc(100svh-11rem)] max-w-3xl flex-col justify-center">
+          <p className="mb-3 text-sm font-medium text-muted-foreground">{formatDate(now)}</p>
+          <h1 className="max-w-2xl text-3xl font-semibold tracking-[-0.04em] text-foreground sm:text-5xl">{clock.status === 'on-break' ? 'Faça uma boa pausa.' : `Bom trabalho, ${firstName}.`}</h1>
+          <p className="mt-4 max-w-lg text-base leading-7 text-muted-foreground">{clock.status === 'on-break' ? 'Seu registro está pausado. Retome quando voltar.' : 'Sua jornada está em andamento. Registre o próximo momento quando ele acontecer.'}</p>
+          <div className="mt-10"><TimeClockAction {...clockActionProps(clock)} /></div>
+          <ActionFeedback action={clock.lastAction} />
+        </section>
+      )}
+
+      {clock.status === 'completed' && clock.todayEntry && (
+        <section className="mx-auto flex min-h-[calc(100svh-11rem)] max-w-4xl flex-col justify-center">
+          <div className="mb-8 flex items-center gap-2 text-sm font-medium text-emerald-700 dark:text-emerald-400"><CheckCircle2 className="size-4" /> Registro encerrado</div>
+          <h1 className="max-w-3xl text-3xl font-semibold tracking-[-0.04em] text-foreground sm:text-5xl">Jornada concluída!<br />Bom descanso, {firstName}.</h1>
+          <p className="mt-4 text-sm text-muted-foreground">{formatDate(now)}</p>
+
+          <Card className="mt-10 rounded-2xl border-border shadow-sm">
+            <CardContent className="p-5 sm:p-7">
+              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                <SummaryItem label="Entrada" value={formatTime(clock.todayEntry.occurredAt)} />
+                <SummaryItem label="Saída" value="Não retornada" hint="Disponível após atualização da API" />
+                <SummaryItem label="Tempo total" value={clock.todayEntry.totalWorkedMinutes < 0 ? 'Em andamento' : formatMinutes(clock.todayEntry.totalWorkedMinutes)} />
+                <SummaryItem label="Pausas" value={`${clock.todayEntry.breaks.length} ${clock.todayEntry.breaks.length === 1 ? 'registrada' : 'registradas'}`} hint="Duração não retornada pela API" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <div className="mt-7"><Button asChild variant="outline" size="lg" className="gap-2 rounded-lg active:scale-[0.98]"><Link to="/historico">Ver meu histórico completo <ArrowRight className="size-4" /></Link></Button></div>
+        </section>
+      )}
+    </div>
+  )
+}
 
 function useCurrentTime() {
   const [now, setNow] = useState(() => new Date())
@@ -23,95 +82,25 @@ function useCurrentTime() {
   return now
 }
 
-function getTodayEntry(entries: Array<Record<string, DayEntry>>) {
-  const today = new Date().toLocaleDateString('pt-BR')
-  const current = entries
-    .flatMap((entry) => Object.values(entry))
-    .find((entry) => new Date(entry.occurredAt).toLocaleDateString('pt-BR') === today)
-
-  return current || null
+function clockActionProps(clock: ReturnType<typeof useTimeClockStatus>) {
+  return {
+    status: clock.status,
+    todayEntry: clock.todayEntry,
+    isClockingIn: clock.isClockingIn,
+    isTogglingBreak: clock.isTogglingBreak,
+    isClockingOut: clock.isClockingOut,
+    onClockIn: clock.clockIn,
+    onToggleBreak: clock.toggleBreak,
+    onClockOut: clock.clockOut,
+  }
 }
 
-export function HomePage() {
-  const queryClient = useQueryClient()
-  const now = useCurrentTime()
-  const entriesQuery = useQuery({ queryKey: ['time-entries', 1, 100], queryFn: () => getEntries(1, 100) })
-  const scheduleQuery = useQuery({ queryKey: ['work-schedule'], queryFn: getWorkSchedule })
-  const [lastAction, setLastAction] = useState<string | null>(null)
-  const todayEntry = useMemo(() => getTodayEntry(entriesQuery.data?.entries || []), [entriesQuery.data])
+function SummaryItem({ label, value, hint }: { label: string; value: string; hint?: string }) {
+  return <div><p className="text-sm text-muted-foreground">{label}</p><p className="mt-2 text-xl font-semibold tracking-tight tabular-nums">{value}</p>{hint && <p className="mt-1 text-xs leading-5 text-muted-foreground">{hint}</p>}</div>
+}
 
-  const actionMutation = useMutation({
-    mutationFn: async () => {
-      if (!todayEntry || todayEntry.timeEntryStage === 'clocked-out') return { type: 'Entrada', response: await registerTimeIn() }
-      if (todayEntry.timeEntryStage === 'on-break') return { type: 'Fim da pausa', response: await toggleBreak() }
-      return { type: 'Saída', response: await registerTimeOut() }
-    },
-    onSuccess: ({ type }) => {
-      const time = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
-      setLastAction(`${type} registrada às ${time}`)
-      toast.success(`${type} registrada às ${time}`)
-      void queryClient.invalidateQueries({ queryKey: ['time-entries'] })
-      void queryClient.invalidateQueries({ queryKey: ['time-balance'] })
-      void queryClient.invalidateQueries({ queryKey: ['balance-events'] })
-      void queryClient.invalidateQueries({ queryKey: ['accumulated-delay'] })
-    },
-    onError: (error) => toast.error(getErrorMessage(error)),
-  })
+function ActionFeedback({ action }: { action: { label: string; occurredAt: Date } | null }) {
+  if (!action) return null
 
-  const breakMutation = useMutation({
-    mutationFn: toggleBreak,
-    onSuccess: () => {
-      const time = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
-      const label = todayEntry?.timeEntryStage === 'on-break' ? 'Fim da pausa' : 'Pausa iniciada'
-      setLastAction(`${label} às ${time}`)
-      toast.success(`${label} às ${time}`)
-      void queryClient.invalidateQueries({ queryKey: ['time-entries'] })
-    },
-    onError: (error) => toast.error(getErrorMessage(error)),
-  })
-
-  const isLoading = entriesQuery.isLoading || scheduleQuery.isLoading
-  const status = todayEntry?.timeEntryStage || null
-
-  return (
-    <div className="space-y-8">
-      <PageHeader title="Hoje" description={formatDate(now)} />
-
-      {isLoading ? <LoadingState rows={3} /> : (
-        <>
-          <section className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_19rem]">
-            <div className="space-y-4">
-              <div className="flex items-end justify-between gap-4">
-                <div>
-                  <p className="text-sm text-muted-foreground">Horário atual</p>
-                  <p className="mt-1 text-5xl font-semibold tracking-[-0.06em] tabular-nums text-foreground sm:text-6xl">{now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</p>
-                </div>
-                {lastAction && <p className="max-w-44 text-right text-xs text-emerald-700 dark:text-emerald-400">{lastAction}</p>}
-              </div>
-              <TimeClockAction status={status} isPending={actionMutation.isPending} onAction={() => actionMutation.mutate()} />
-              {status === 'clocked-in' && (
-                <Button variant="outline" className="w-full sm:w-auto" onClick={() => breakMutation.mutate()} disabled={breakMutation.isPending}>
-                  {breakMutation.isPending ? 'Registrando…' : 'Iniciar pausa'}
-                </Button>
-              )}
-            </div>
-
-            <Card className="border-border/70 bg-card shadow-none">
-              <CardHeader className="pb-3"><CardTitle className="text-sm font-medium text-muted-foreground">Jornada prevista</CardTitle></CardHeader>
-              <CardContent>
-                {scheduleQuery.isError ? <p className="text-sm text-muted-foreground">Jornada não configurada.</p> : scheduleQuery.data ? (
-                  <>
-                    <p className="text-2xl font-semibold tracking-tight">{scheduleQuery.data.startTime} <span className="text-muted-foreground">–</span> {scheduleQuery.data.endTime}</p>
-                    <p className="mt-2 text-sm text-muted-foreground">Tolerância de {scheduleQuery.data.lateTolerance} min · {scheduleQuery.data.breaksPerDay} pausas</p>
-                  </>
-                ) : <p className="text-sm text-muted-foreground">Nenhuma jornada encontrada.</p>}
-              </CardContent>
-            </Card>
-          </section>
-          <TodayRecords entry={todayEntry} />
-        </>
-      )}
-      {!isLoading && entriesQuery.isError && <EmptyState title="Não foi possível carregar o dia" description="Verifique se a API está disponível e tente atualizar a página." />}
-    </div>
-  )
+  return <p role="status" className="mt-8 text-sm text-emerald-700 dark:text-emerald-400">{action.label} às {action.occurredAt.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</p>
 }

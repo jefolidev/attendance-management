@@ -13,7 +13,7 @@ const items = [
 
 export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   return (
-    <aside className="flex h-full w-full flex-col bg-card px-4 py-5 lg:w-64 lg:border-r lg:px-5">
+    <aside className="flex h-full w-full flex-col bg-zinc-50 px-4 py-5 dark:bg-zinc-950 lg:w-64 lg:border-r lg:px-5">
       <div className="flex items-center justify-between px-2">
         <NavLink to="/" className="flex items-center gap-2.5" onClick={onNavigate}>
           <span className="grid size-8 place-items-center rounded-lg bg-primary text-primary-foreground" aria-hidden="true">

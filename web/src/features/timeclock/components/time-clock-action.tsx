@@ -1,43 +1,74 @@
-import { ArrowRight, Coffee, LogIn, LogOut } from 'lucide-react'
+import { Coffee, LogIn, LogOut, Play } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import type { TimeEntryStage } from '@/services/timeclock-service'
+import { Badge } from '@/components/ui/badge'
+import { formatTime } from '@/lib/formatters'
+import type { DayEntry } from '@/services/timeclock-service'
+import type { TimeClockDayStatus } from '../hooks/use-time-clock-status'
 
 interface TimeClockActionProps {
-  status: TimeEntryStage | null
-  isPending: boolean
-  onAction: () => void
+  status: TimeClockDayStatus
+  todayEntry: DayEntry | null
+  isClockingIn: boolean
+  isTogglingBreak: boolean
+  isClockingOut: boolean
+  onClockIn: () => void
+  onToggleBreak: () => void
+  onClockOut: () => void
 }
 
-export function TimeClockAction({ status, isPending, onAction }: TimeClockActionProps) {
-  const action = status === 'clocked-in'
-    ? { label: 'Registrar saída', hint: 'Encerrar jornada de hoje', icon: LogOut }
-    : status === 'on-break'
-      ? { label: 'Encerrar pausa', hint: 'Voltar para a jornada', icon: Coffee }
-      : { label: 'Registrar entrada', hint: 'Começar jornada de hoje', icon: LogIn }
-
-  const Icon = action.icon
-
-  return (
-    <div className="rounded-2xl border border-amber-300/70 bg-amber-50/80 p-5 dark:border-amber-800/70 dark:bg-amber-950/20 sm:p-6">
-      <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <p className="text-sm font-medium text-amber-950/70 dark:text-amber-200/70">Próximo registro</p>
-          <p className="mt-1 text-2xl font-semibold tracking-tight text-amber-950 dark:text-amber-100">{action.hint}</p>
-        </div>
-        <Button
-          size="lg"
-          className="h-14 w-full gap-3 rounded-xl bg-amber-700 px-6 text-base text-white shadow-none hover:bg-amber-800 sm:w-auto"
-          onClick={onAction}
-          disabled={isPending}
-        >
-          <Icon className="size-5" />
-          {isPending ? 'Registrando…' : action.label}
-          <ArrowRight className="size-4 opacity-70" />
+export function TimeClockAction({
+  status,
+  todayEntry,
+  isClockingIn,
+  isTogglingBreak,
+  isClockingOut,
+  onClockIn,
+  onToggleBreak,
+  onClockOut,
+}: TimeClockActionProps) {
+  if (status === 'not-started') {
+    return (
+      <div className="flex justify-center pt-4">
+        <Button size="lg" className="h-16 w-full max-w-sm gap-3 rounded-xl bg-primary px-8 text-base font-semibold text-primary-foreground shadow-sm active:scale-[0.98] sm:w-auto" onClick={onClockIn} disabled={isClockingIn}>
+          <LogIn className="size-5" />
+          {isClockingIn ? 'Registrando…' : 'Bater Ponto de Entrada'}
         </Button>
       </div>
-      {status === 'clocked-in' && (
-        <p className="mt-4 text-xs text-amber-950/60 dark:text-amber-200/60">Precisa pausar? Use o botão de pausa ao lado do registro atual.</p>
-      )}
+    )
+  }
+
+  if (status === 'completed') return null
+
+  const isOnBreak = status === 'on-break'
+
+  return (
+    <div className="space-y-5 rounded-2xl border border-border bg-card p-5 shadow-sm sm:p-7">
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <span className={`relative grid size-3 place-items-center rounded-full ${isOnBreak ? 'bg-amber-400' : 'bg-emerald-500'}`}>
+            {!isOnBreak && <span className="absolute size-3 animate-ping rounded-full bg-emerald-400/60" aria-hidden="true" />}
+          </span>
+          <div>
+            <p className="font-medium">{isOnBreak ? 'Em pausa' : 'Trabalhando'}</p>
+            <p className="text-sm text-muted-foreground">Entrada às {todayEntry ? formatTime(todayEntry.occurredAt) : '—'}</p>
+          </div>
+        </div>
+        <Badge variant="outline" className={isOnBreak ? 'border-amber-300 bg-amber-50 text-amber-800 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-300' : 'border-emerald-300 bg-emerald-50 text-emerald-800 dark:border-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-300'}>
+          {isOnBreak ? 'Pausa' : 'Ativo'}
+        </Badge>
+      </div>
+
+      <div className="grid gap-3 sm:grid-cols-2">
+        <Button variant="outline" size="lg" className="h-12 gap-2 rounded-lg active:scale-[0.98]" onClick={onToggleBreak} disabled={isTogglingBreak}>
+          {isOnBreak ? <Play className="size-4" /> : <Coffee className="size-4" />}
+          {isTogglingBreak ? 'Registrando…' : isOnBreak ? 'Retomar Trabalho' : 'Adicionar Pausa'}
+        </Button>
+        <Button variant="destructive" size="lg" className="h-12 gap-2 rounded-lg active:scale-[0.98]" onClick={onClockOut} disabled={isClockingOut || isOnBreak}>
+          <LogOut className="size-4" />
+          {isClockingOut ? 'Registrando…' : 'Bater Ponto de Saída'}
+        </Button>
+      </div>
+      {isOnBreak && <p className="text-xs text-muted-foreground">Retome o trabalho antes de encerrar a jornada.</p>}
     </div>
   )
 }

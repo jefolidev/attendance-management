@@ -14,7 +14,15 @@ export function formatDateTime(value: string | Date) {
 }
 
 export function formatDate(value: string | Date) {
-  return ptBrDate.format(new Date(value))
+  const formatted = ptBrDate.format(new Date(value))
+  return formatted.charAt(0).toUpperCase() + formatted.slice(1)
+}
+
+export function formatTime(value: string | Date) {
+  return new Intl.DateTimeFormat('pt-BR', {
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(new Date(value))
 }
 
 export function formatMinutes(minutes: number) {

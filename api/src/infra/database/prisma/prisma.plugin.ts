@@ -1,12 +1,18 @@
 import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3';
 import 'dotenv/config';
 import type { FastifyInstance } from 'fastify';
-import fastifyPlugin from 'fastify-plugin';
+import fp from 'fastify-plugin';
 
 import { PrismaClient } from '../../../../generated/prisma/client.ts';
 
+declare module 'fastify' {
+  interface FastifyInstance {
+    prisma: PrismaClient;
+  }
+}
+
 export async function prismaPlugin(server: FastifyInstance): Promise<void> {
-  const connectionString = process.env.DATABASE_URL;
+  const connectionString = process.env.DATABASE_URL;  
 
   if(!connectionString) {
     throw new Error('DATABASE_URL environment variable is not defined');
@@ -28,6 +34,6 @@ export async function prismaPlugin(server: FastifyInstance): Promise<void> {
     });
 }
 
-export default fastifyPlugin(prismaPlugin, {
+export default fp(prismaPlugin, {
   name: 'prisma-plugin',
 })

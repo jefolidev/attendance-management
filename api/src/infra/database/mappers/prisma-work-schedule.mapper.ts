@@ -38,7 +38,7 @@ export class PrismaWorkScheduleMapper {
   }
 
   static toDomain(raw: PrismaWorkScheduleWithDays): WorkScheduleDomain {
-    const workDays = raw.workDaysWorkSchedules[0]?.workDays;
+    const workDays = raw.workDaysWorkSchedules?.[0]?.workDays;
 
     return WorkScheduleDomain.create(
       {

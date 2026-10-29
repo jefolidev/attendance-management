@@ -22,13 +22,19 @@ export class PrismaTimeBalanceEntryMapper {
       reason: entry.reason as TimeBalanceEntryReason,
       durationInMinutes: entry.durationInMinutes,
       employeeId: entry.employeeId.toString(),
+      timeBalanceId: entry.timeBalanceId.toString(),
     };
   }
 
   static toDomain(raw: TimeBalanceEntry): TimeBalanceEntryDomain {
+    if (!raw.timeBalanceId) {
+      throw new Error(`Time balance entry ${raw.id} has no time balance`);
+    }
+
     return TimeBalanceEntryDomain.create(
       {
         employeeId: new UniqueEntityId(raw.employeeId),
+        timeBalanceId: new UniqueEntityId(raw.timeBalanceId),
         type: raw.type as DomainType,
         reason: raw.reason as DomainReason,
         durationInMinutes: raw.durationInMinutes,

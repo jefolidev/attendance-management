@@ -29,6 +29,7 @@ export class PrismaTimeBalanceMapper {
 
       return {
         employeeId: domainEvent.employeeId,
+        timeBalanceId: domainEvent.timeBalanceId,
         type: domainEvent.type,
         reason: domainEvent.reason,
         durationInMinutes: domainEvent.durationInMinutes,

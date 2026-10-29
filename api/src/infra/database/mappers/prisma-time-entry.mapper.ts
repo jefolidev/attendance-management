@@ -26,6 +26,11 @@ const statusToDomain: Record<
   [PrismaTimeEntryStage.ON_BREAK]: DomainTimeEntryStage.ON_BREAK,
 };
 
+type SerializedBreak = {
+  start: string | Date;
+  end: string | Date | null;
+};
+
 export class PrismaTimeEntryMapper {
   static toPrisma(timeEntry: TimeEntryDomain): TimeEntry {
     return {
@@ -40,11 +45,18 @@ export class PrismaTimeEntryMapper {
   }
 
   static toDomain(raw: TimeEntry): TimeEntryDomain {
+    const breaks = (JSON.parse(JSON.stringify(raw.breaks)) as SerializedBreak[]).map(
+      (entry) => ({
+        start: new Date(entry.start),
+        end: entry.end ? new Date(entry.end) : null,
+      }),
+    );
+
     return TimeEntryDomain.create({
       employeeId: new UniqueEntityId(raw.employeeId),
       clockIn: raw.clockIn,
       clockOut: raw.clockOut || undefined,
-      breaks: JSON.parse(JSON.stringify(raw.breaks)),
+      breaks,
       status: statusToDomain[raw.status],
       updatedAt: raw.updatedAt,
     }, new UniqueEntityId(raw.id));

@@ -1,9 +1,9 @@
-import { type Either, left, right } from '@src/core/either'
-import { BadRequestError } from '@src/core/entities/errors/bad-request-error'
-import { NotFoundError } from '@src/core/entities/errors/not-found-error'
-import type { EmployeeRepository } from '../repositories/employee.repository'
-import type { TimeEntryRepository } from '../repositories/time-entry.repository'
-import type { WorkScheduleRepository } from '../repositories/work-schedule.repository'
+import { type Either, left, right } from '@src/core/either';
+import { BadRequestError } from '@src/core/entities/errors/bad-request-error';
+import { NotFoundError } from '@src/core/entities/errors/not-found-error';
+import type { EmployeeRepository } from '../repositories/employee.repository';
+import type { TimeEntryRepository } from '../repositories/time-entry.repository';
+import type { WorkScheduleRepository } from '../repositories/work-schedule.repository';
 
 interface RegisterBreakEntryUseCaseRequest {
 	breakIn: Date

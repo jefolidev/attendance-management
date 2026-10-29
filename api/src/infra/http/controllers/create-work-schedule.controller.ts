@@ -32,8 +32,6 @@ export class CreateWorkScheduleController {
     try {
       const requester = this.fastify.jwtAuth.verifyToken(token);
 
-      
-    
       const result = await this.createWorkScheduleUseCase.execute({
         startTime,
         endTime,

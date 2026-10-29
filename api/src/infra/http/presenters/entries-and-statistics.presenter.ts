@@ -1,8 +1,8 @@
+import { WORK_SCHEDULE_TIMEZONE } from "@src/core/time/work-schedule-timezone";
+import type { EntriesAndStatisticsProps } from "@src/domain/manage/application/use-cases/value-objects/entries-and-statistics";
 import dayjs from "dayjs";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
-import { WORK_SCHEDULE_TIMEZONE } from "@src/core/time/work-schedule-timezone";
-import type { EntriesAndStatisticsProps } from "@src/domain/manage/application/use-cases/value-objects/entries-and-statistics";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);

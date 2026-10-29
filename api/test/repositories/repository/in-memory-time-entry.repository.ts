@@ -1,4 +1,5 @@
 import { UniqueEntityId } from '../../../src/core/entities/unique-entity-id';
+import type { PaginationParams } from '../../../src/core/repositories/pagination';
 import type { TimeEntryRepository } from '../../../src/domain/manage/application/repositories/time-entry.repository';
 import type { TimeEntry } from '../../../src/domain/manage/enterprise/entities/time-entry';
 
@@ -17,12 +18,20 @@ export class InMemoryTimeEntryRepository implements TimeEntryRepository {
 		return timeEntry || null
 	}
 
-	async findByEmployeeId(employeeId: string): Promise<TimeEntry[]> {
+	async findByEmployeeId(
+		employeeId: string,
+		paginationParams?: PaginationParams,
+	): Promise<TimeEntry[]> {
 		const timeEntries = this.items.filter((timeEntry) =>
 			timeEntry.employeeId.equals(new UniqueEntityId(employeeId)),
 		)
 
-		return timeEntries
+		if (!paginationParams) return timeEntries
+
+		const perPage = paginationParams.perPage ?? 20
+		const start = (paginationParams.page - 1) * perPage
+
+		return timeEntries.slice(start, start + perPage)
 	}
 
 	async findCompletedByEmployeeId(employeeId: string): Promise<TimeEntry[]> {

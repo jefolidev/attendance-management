@@ -1,6 +1,10 @@
 import { type Either, left, right } from '@src/core/either'
 import type { BadRequestError } from '@src/core/entities/errors/bad-request-error'
 import { NotFoundError } from '@src/core/entities/errors/not-found-error'
+import {
+	normalizePagination,
+	type PaginationMeta,
+} from '@src/core/repositories/pagination'
 import { WORK_SCHEDULE_TIMEZONE } from '@src/core/time/work-schedule-timezone'
 import dayjs from 'dayjs'
 import timezone from 'dayjs/plugin/timezone'
@@ -16,11 +20,15 @@ dayjs.extend(timezone)
 interface ListEmployeeEntriesUseCaseRequest {
 	requesterId: string
 	page?: number
+	perPage?: number
 }
 
 type ListEmployeeEntriesUseCaseResponse = Either<
 	BadRequestError,
-	{ entries: Record<string, EntriesAndStatisticsProps>[] }
+	{
+		entries: Record<string, EntriesAndStatisticsProps>[]
+		pagination: PaginationMeta
+	}
 >
 
 export class ListEmployeeEntriesUseCase {
@@ -32,6 +40,8 @@ export class ListEmployeeEntriesUseCase {
 
 	async execute({
 		requesterId,
+		page,
+		perPage,
 	}: ListEmployeeEntriesUseCaseRequest): Promise<ListEmployeeEntriesUseCaseResponse> {
 		if (!requesterId) {
 			return left(new NotFoundError('Requester ID is required'))
@@ -52,8 +62,11 @@ export class ListEmployeeEntriesUseCase {
 			)
 		}
 
-		const timeEntries =
-			await this.timeEntryRepository.findByEmployeeId(requesterId)
+		const pagination = normalizePagination({ page, perPage })
+		const timeEntries = await this.timeEntryRepository.findByEmployeeId(
+			requesterId,
+			pagination,
+		)
 
 		const entriesAndStatistics: Record<string, EntriesAndStatisticsProps>[] =
 			timeEntries.map((entry) => {
@@ -113,6 +126,12 @@ export class ListEmployeeEntriesUseCase {
 				return { [localDate.format('ddd MMM DD YYYY')]: entriesAndStatistics }
 			})
 
-		return right({ entries: entriesAndStatistics })
+		return right({
+			entries: entriesAndStatistics,
+			pagination: {
+				...pagination,
+				hasNextPage: timeEntries.length === pagination.perPage,
+			},
+		})
 	}
 }

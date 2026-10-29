@@ -1,17 +1,23 @@
 import { left, right } from '@src/core/either'
 import type { Either } from '@src/core/either'
 import { NotFoundError } from '@src/core/entities/errors/not-found-error'
+import {
+	normalizePagination,
+	type PaginationMeta,
+} from '@src/core/repositories/pagination'
 import { TimeBalance } from '../../enterprise/entities/time-balance'
 import { EmployeeRepository } from '../repositories/employee.repository'
 import { TimeBalanceRepository } from '../repositories/time-balance.repository'
 
 interface GetBalanceEventsUseCaseRequest {
 	requesterId: string
+	page?: number
+	perPage?: number
 }
 
 type GetBalanceEventsUseCaseResponse = Either<
 	NotFoundError,
-	{ events: TimeBalance['events'] }
+	{ events: TimeBalance['events']; pagination: PaginationMeta }
 >
 
 export class GetBalanceEventsUseCase {
@@ -37,8 +43,19 @@ export class GetBalanceEventsUseCase {
 			return left(new NotFoundError('Time balance not found'))
 		}
 
+		const pagination = normalizePagination(request)
+		const start = (pagination.page - 1) * pagination.perPage
+		const events = timeBalance.events.slice(
+			start,
+			start + pagination.perPage,
+		)
+
 		return right({
-			events: timeBalance.events,
+			events,
+			pagination: {
+				...pagination,
+				hasNextPage: timeBalance.events.length > start + events.length,
+			},
 		})
 	}
 }

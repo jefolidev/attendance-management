@@ -79,7 +79,7 @@ export class ListEmployeeEntriesUseCase {
 					: null
 
 				const entryMinutesEarly = dayjs(arrivedTime).isBefore(workStartTime)
-					? arrivedTime.diff(workStartTime, 'minute')
+					? workStartTime.diff(arrivedTime, 'minute')
 					: 0
 
 				const entryMinutesLate = dayjs(arrivedTime).isAfter(workStartTime)

@@ -79,15 +79,15 @@ export class ListEmployeeEntriesUseCase {
 					: null
 
 				const entryMinutesEarly = dayjs(arrivedTime).isBefore(workStartTime)
-					? workStartTime.diff(dayjs(arrivedTime), 'minute')
+					? arrivedTime.diff(workStartTime, 'minute')
 					: 0
 
 				const entryMinutesLate = dayjs(arrivedTime).isAfter(workStartTime)
-					? workStartTime.diff(arrivedTime, 'minute')
+					? arrivedTime.diff(workStartTime, 'minute')
 					: 0
 
 				const departureMinutesEarly = departedTime?.isBefore(workEndTime)
-					? departedTime.diff(workEndTime, 'minute')
+					? workEndTime.diff(departedTime, 'minute')
 					: 0
 
 				const departureMinutesLate = departedTime?.isAfter(workEndTime)
@@ -96,7 +96,8 @@ export class ListEmployeeEntriesUseCase {
 
 				const totalWorkedTime = entry.calculateWorkedTimeWithoutBreaks()
 
-				const date = new Date(entry.clockIn)
+				const localDate = dayjs(entry.clockIn).tz(WORK_SCHEDULE_TIMEZONE)
+				const date = localDate.toDate()
 
 				const entriesAndStatistics: EntriesAndStatisticsProps = {
 					timeEntryStage: entry.status,
@@ -108,7 +109,7 @@ export class ListEmployeeEntriesUseCase {
 					totalWorkedMinutes:
 						totalWorkedTime < 0 ? -1 : Math.floor(totalWorkedTime / 60000),
 				}
-				return { [date.toDateString()]: entriesAndStatistics }
+				return { [localDate.format('ddd MMM DD YYYY')]: entriesAndStatistics }
 			})
 
 		return right({ entries: entriesAndStatistics })

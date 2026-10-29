@@ -2,6 +2,7 @@ import { type Either, left, right } from '@src/core/either'
 import { BadRequestError } from '@src/core/entities/errors/bad-request-error'
 import { NotFoundError } from '@src/core/entities/errors/not-found-error'
 import { UniqueEntityId } from '@src/core/entities/unique-entity-id'
+import { WORK_SCHEDULE_TIMEZONE } from '@src/core/time/work-schedule-timezone'
 import dayjs from 'dayjs'
 import timezone from 'dayjs/plugin/timezone'
 import utc from 'dayjs/plugin/utc'
@@ -14,8 +15,6 @@ import type { WorkScheduleRepository } from '../repositories/work-schedule.repos
 
 dayjs.extend(utc)
 dayjs.extend(timezone)
-
-const WORK_SCHEDULE_TIMEZONE = 'America/Fortaleza'
 
 interface RegisterTimeOutEntryUseCaseRequest {
 	clockOut: Date
@@ -78,7 +77,11 @@ export class RegisterTimeOutEntryUseCase {
 			return left(new BadRequestError('No active time entry found.'))
 		}
 
-		if (clockOut < existingTimeEntry.clockIn) {
+		if (
+			dayjs(clockOut)
+				.tz(WORK_SCHEDULE_TIMEZONE)
+				.isBefore(dayjs(existingTimeEntry.clockIn).tz(WORK_SCHEDULE_TIMEZONE))
+		) {
 			return left(
 				new BadRequestError(
 					'Clock-out time cannot be earlier than clock-in time.',
@@ -86,7 +89,11 @@ export class RegisterTimeOutEntryUseCase {
 			)
 		}
 
-		if (clockOut > new Date()) {
+		if (
+			dayjs(clockOut)
+				.tz(WORK_SCHEDULE_TIMEZONE)
+				.isAfter(dayjs().tz(WORK_SCHEDULE_TIMEZONE))
+		) {
 			return left(
 				new BadRequestError('Clock-out time cannot be in the future.'),
 			)
@@ -98,13 +105,17 @@ export class RegisterTimeOutEntryUseCase {
 			await this.ensureTimeBalance(requesterId)
 			await this.timeBalanceEntryRepository.addDebitEntry(
 				requesterId,
-				dayjs(endTime).diff(clockOut, 'minute'),
+				dayjs(endTime)
+					.tz(WORK_SCHEDULE_TIMEZONE)
+					.diff(dayjs(clockOut).tz(WORK_SCHEDULE_TIMEZONE), 'minute'),
 				'EARLY_DEPARTURE',
 			)
 		} else if (workSchedule.isDepartedLate(clockOut)) {
 			await this.creditExtraTime(
 				requesterId,
-				dayjs(clockOut).diff(endTime, 'minute'),
+				dayjs(clockOut)
+					.tz(WORK_SCHEDULE_TIMEZONE)
+					.diff(dayjs(endTime).tz(WORK_SCHEDULE_TIMEZONE), 'minute'),
 			)
 		}
 

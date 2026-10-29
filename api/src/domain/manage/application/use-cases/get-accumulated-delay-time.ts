@@ -1,9 +1,15 @@
 import { type Either, left, right } from '@src/core/either'
 import { NotFoundError } from '@src/core/entities/errors/not-found-error'
+import { WORK_SCHEDULE_TIMEZONE } from '@src/core/time/work-schedule-timezone'
 import dayjs from 'dayjs'
+import timezone from 'dayjs/plugin/timezone'
+import utc from 'dayjs/plugin/utc'
 import type { EmployeeRepository } from '../repositories/employee.repository'
 import type { TimeEntryRepository } from '../repositories/time-entry.repository'
 import type { WorkScheduleRepository } from '../repositories/work-schedule.repository'
+
+dayjs.extend(utc)
+dayjs.extend(timezone)
 
 interface GetAccumulatedDelayTimeUseCaseRequest {
 	requesterId: string
@@ -71,8 +77,10 @@ export class GetAccumulatedDelayTimeUseCase {
 		let totalLateMinutes = 0
 
 		for (const entry of completedTimeEntries) {
-			const clockIn = dayjs(entry.clockIn)
-			const clockOut = dayjs(entry.clockOut)
+			if (!entry.clockOut) continue
+
+			const clockIn = dayjs(entry.clockIn).tz(WORK_SCHEDULE_TIMEZONE)
+			const clockOut = dayjs(entry.clockOut).tz(WORK_SCHEDULE_TIMEZONE)
 			const day = clockIn.startOf('day')
 
 			const expectedStart = day

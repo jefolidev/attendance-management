@@ -1,11 +1,17 @@
 import { type Either, left, right } from '@src/core/either'
 import type { BadRequestError } from '@src/core/entities/errors/bad-request-error'
 import { NotFoundError } from '@src/core/entities/errors/not-found-error'
+import { WORK_SCHEDULE_TIMEZONE } from '@src/core/time/work-schedule-timezone'
 import dayjs from 'dayjs'
+import timezone from 'dayjs/plugin/timezone'
+import utc from 'dayjs/plugin/utc'
 import type { EmployeeRepository } from '../repositories/employee.repository'
 import type { TimeEntryRepository } from '../repositories/time-entry.repository'
 import type { WorkScheduleRepository } from '../repositories/work-schedule.repository'
 import type { EntriesAndStatisticsProps } from './value-objects/entries-and-statistics'
+
+dayjs.extend(utc)
+dayjs.extend(timezone)
 
 interface ListEmployeeEntriesUseCaseRequest {
 	requesterId: string
@@ -53,18 +59,24 @@ export class ListEmployeeEntriesUseCase {
 			timeEntries.map((entry) => {
 				const { startTime, endTime } = workSchedule
 
-				const getTimeFromString = (timeString: string) => {
+				const getTimeFromString = (timeString: string, referenceDate: Date) => {
 					const [hours, minutes] = timeString.split(':').map(Number)
-					const date = new Date()
-					date.setHours(hours || 0, minutes || 0, 0, 0)
-					return date
+					return dayjs(referenceDate)
+						.tz(WORK_SCHEDULE_TIMEZONE)
+						.startOf('day')
+						.hour(hours || 0)
+						.minute(minutes || 0)
+						.second(0)
+						.millisecond(0)
 				}
 
-				const workStartTime = dayjs(getTimeFromString(startTime))
-				const workEndTime = dayjs(getTimeFromString(endTime))
+				const workStartTime = getTimeFromString(startTime, entry.clockIn)
+				const workEndTime = getTimeFromString(endTime, entry.clockIn)
 
-				const arrivedTime = dayjs(entry.clockIn)
-				const departedTime = dayjs(entry.clockOut)
+				const arrivedTime = dayjs(entry.clockIn).tz(WORK_SCHEDULE_TIMEZONE)
+				const departedTime = entry.clockOut
+					? dayjs(entry.clockOut).tz(WORK_SCHEDULE_TIMEZONE)
+					: null
 
 				const entryMinutesEarly = dayjs(arrivedTime).isBefore(workStartTime)
 					? workStartTime.diff(dayjs(arrivedTime), 'minute')

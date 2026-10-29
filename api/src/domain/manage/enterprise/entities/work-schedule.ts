@@ -3,6 +3,7 @@ import timezone from 'dayjs/plugin/timezone'
 import utc from 'dayjs/plugin/utc'
 import { AggregateRoot } from '../../../../core/entities/aggregate'
 import type { UniqueEntityId } from '../../../../core/entities/unique-entity-id'
+import { WORK_SCHEDULE_TIMEZONE } from '../../../../core/time/work-schedule-timezone'
 
 dayjs.extend(utc)
 dayjs.extend(timezone)
@@ -19,8 +20,6 @@ interface WorkScheduleProps {
 
 	employeeId: UniqueEntityId
 }
-
-const WORK_SCHEDULE_TIMEZONE = 'America/Fortaleza'
 
 export class WorkSchedule extends AggregateRoot<WorkScheduleProps> {
 	get startTime(): string {
@@ -68,39 +67,46 @@ export class WorkSchedule extends AggregateRoot<WorkScheduleProps> {
 	}
 
 	isLate(clockIn: Date): boolean {
-		const scheduledStartTime = this.startTimeToDate(clockIn)
-		const hittedPoint = dayjs(clockIn)
+		const scheduledStartTime = dayjs(this.startTimeToDate(clockIn)).tz(
+			WORK_SCHEDULE_TIMEZONE,
+		)
+		const hittedPoint = dayjs(clockIn).tz(WORK_SCHEDULE_TIMEZONE)
 
 		return hittedPoint.isAfter(scheduledStartTime)
 	}
 
 	isLateWithTolerance(clockIn: Date): boolean {
-		const scheduledStartTime = dayjs(this.startTimeToDate(clockIn)).add(
-			this.lateTolerance,
-			'minute',
-		)
-		const hittedPoint = dayjs(clockIn)
+		const scheduledStartTime = dayjs(this.startTimeToDate(clockIn))
+			.tz(WORK_SCHEDULE_TIMEZONE)
+			.add(this.lateTolerance, 'minute')
+		const hittedPoint = dayjs(clockIn).tz(WORK_SCHEDULE_TIMEZONE)
 
 		return hittedPoint.isAfter(scheduledStartTime)
 	}
 
 	isEarly(clockIn: Date): boolean {
-		const scheduledStartTime = this.startTimeToDate(clockIn)
-		const hittedPoint = dayjs(clockIn)
+		const scheduledStartTime = dayjs(this.startTimeToDate(clockIn)).tz(
+			WORK_SCHEDULE_TIMEZONE,
+		)
+		const hittedPoint = dayjs(clockIn).tz(WORK_SCHEDULE_TIMEZONE)
 
 		return hittedPoint.isBefore(scheduledStartTime)
 	}
 
 	isDepartedEarly(clockOut: Date): boolean {
-		const scheduledEndTime = this.endTimeToDate(clockOut)
-		const hittedPoint = dayjs(clockOut)
+		const scheduledEndTime = dayjs(this.endTimeToDate(clockOut)).tz(
+			WORK_SCHEDULE_TIMEZONE,
+		)
+		const hittedPoint = dayjs(clockOut).tz(WORK_SCHEDULE_TIMEZONE)
 
 		return hittedPoint.isBefore(scheduledEndTime)
 	}
 
 	isDepartedLate(clockOut: Date): boolean {
-		const scheduledEndTime = this.endTimeToDate(clockOut)
-		const hittedPoint = dayjs(clockOut)
+		const scheduledEndTime = dayjs(this.endTimeToDate(clockOut)).tz(
+			WORK_SCHEDULE_TIMEZONE,
+		)
+		const hittedPoint = dayjs(clockOut).tz(WORK_SCHEDULE_TIMEZONE)
 
 		return hittedPoint.isAfter(scheduledEndTime)
 	}

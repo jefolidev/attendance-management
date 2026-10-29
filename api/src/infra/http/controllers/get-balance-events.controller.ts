@@ -1,12 +1,12 @@
 import type { GetBalanceEventsUseCase } from "@src/domain/manage/application/use-cases/get-balance-events";
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
-import dayjs from "dayjs";
-import timezone from "dayjs/plugin/timezone";
-import utc from "dayjs/plugin/utc";
-import { WORK_SCHEDULE_TIMEZONE } from "@src/core/time/work-schedule-timezone";
+import { presentTimeBalanceEntry } from "../presenters/time-balance-entry.presenter";
+import { z } from "zod";
 
-dayjs.extend(utc);
-dayjs.extend(timezone);
+export const getBalanceEventsQuerySchema = z.object({
+  page: z.coerce.number().int().positive().optional(),
+  perPage: z.coerce.number().int().positive().max(100).optional(),
+});
 
 export class GetBalanceEventsController {
   constructor(
@@ -15,6 +15,7 @@ export class GetBalanceEventsController {
   ) {}
 
   async handle(request: FastifyRequest, reply: FastifyReply): Promise<void> {
+    const { page, perPage } = getBalanceEventsQuerySchema.parse(request.query);
     const token = this.fastify.jwtAuth.getTokenByCookieOrHeader(request);
 
     if (!token) {
@@ -25,6 +26,8 @@ export class GetBalanceEventsController {
       const requester = this.fastify.jwtAuth.verifyToken(token);
       const result = await this.getBalanceEventsUseCase.execute({
         requesterId: requester.id as string,
+        page,
+        perPage,
       });
 
       if (result.isLeft()) {
@@ -32,16 +35,8 @@ export class GetBalanceEventsController {
       }
 
       return reply.status(200).send({
-        events: result.value.events.map((event) => ({
-          employeeId: event.employeeId.toString(),
-          timeBalanceId: event.timeBalanceId.toString(),
-          type: event.type,
-          reason: event.reason,
-          durationInMinutes: event.durationInMinutes,
-          createdAt: dayjs(event.createdAt)
-            .tz(WORK_SCHEDULE_TIMEZONE)
-            .format(),
-        })),
+        events: result.value.events.map(presentTimeBalanceEntry),
+        pagination: result.value.pagination,
       });
     } catch (error) {
       return reply.status(400).send({

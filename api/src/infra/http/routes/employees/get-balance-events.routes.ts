@@ -3,7 +3,10 @@ import { GetBalanceEventsUseCase } from "@src/domain/manage/application/use-case
 import { PrismaEmployeeRepository } from "@src/infra/database/prisma/repositories/prisma-employee.repository";
 import { PrismaTimeBalanceRepository } from "@src/infra/database/prisma/repositories/prisma-time-balance.repository";
 import type { FastifyInstance } from "fastify";
-import { GetBalanceEventsController } from "../../controllers/get-balance-events.controller";
+import {
+  getBalanceEventsQuerySchema,
+  GetBalanceEventsController,
+} from "../../controllers/get-balance-events.controller";
 
 export default async function getBalanceEventsRoute(
   fastify: FastifyInstance,
@@ -19,7 +22,10 @@ export default async function getBalanceEventsRoute(
   fastify.withTypeProvider<ZodTypeProvider>().route({
     method: "GET",
     url: "/employees/time-balance/events",
-    schema: { tags: ["employees", "time-balance"] },
+    schema: {
+      querystring: getBalanceEventsQuerySchema,
+      tags: ["employees", "time-balance"],
+    },
     handler: controller.handle.bind(controller),
   });
 }

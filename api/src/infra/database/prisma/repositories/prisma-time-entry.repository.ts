@@ -1,4 +1,5 @@
 import type { Prisma, PrismaClient } from "../../../../../generated/prisma/client.ts";
+import { normalizePagination, type PaginationParams } from "@src/core/repositories/pagination";
 import type { TimeEntryRepository } from "@src/domain/manage/application/repositories/time-entry.repository";
 import type { TimeEntry } from "@src/domain/manage/enterprise/entities/time-entry";
 import { PrismaTimeEntryMapper } from "../../mappers/prisma-time-entry.mapper";
@@ -23,10 +24,20 @@ export class PrismaTimeEntryRepository implements TimeEntryRepository {
         
         return timeEntry ? PrismaTimeEntryMapper.toDomain(timeEntry) : null;
     }
-    async findByEmployeeId(employeeId: string): Promise<TimeEntry[]> {
-        const timeEntries = await this.prisma.timeEntry.findMany({
-            where: { employeeId },
-        });
+    async findByEmployeeId(
+        employeeId: string,
+        paginationParams?: PaginationParams,
+    ): Promise<TimeEntry[]> {
+        const timeEntries = paginationParams
+            ? await this.prisma.timeEntry.findMany({
+                where: { employeeId },
+                skip: (normalizePagination(paginationParams).page - 1) * normalizePagination(paginationParams).perPage,
+                take: normalizePagination(paginationParams).perPage,
+                orderBy: { clockIn: "desc" },
+            })
+            : await this.prisma.timeEntry.findMany({
+                where: { employeeId },
+            });
 
         return timeEntries.map(PrismaTimeEntryMapper.toDomain);
     }

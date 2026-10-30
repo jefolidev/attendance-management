@@ -76,16 +76,15 @@ describe('Update Employee Time Entry', () => {
 		})
 		await timeEntryRepository.create(closedEntry)
 
+		const futureClockOut = new Date('2099-01-02T19:45:00.000Z')
 		const closedResponse = await sut.execute({
 			requesterId: admin.id.toString(),
 			employeeId: employee.id.toString(),
 			timeEntryId: closedEntry.id.toString(),
-			clockOut: new Date('2026-01-02T19:45:00.000Z'),
+			clockOut: futureClockOut,
 		})
 		expect(closedResponse.isRight()).toBe(true)
-		expect(timeEntryRepository.items[1]?.clockOut).toEqual(
-			new Date('2026-01-02T19:45:00.000Z'),
-		)
+		expect(timeEntryRepository.items[1]?.clockOut).toEqual(futureClockOut)
 	})
 
 	it('rejects non-admins and invalid time ranges', async () => {

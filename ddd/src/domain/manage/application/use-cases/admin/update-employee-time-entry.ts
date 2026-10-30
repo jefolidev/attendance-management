@@ -59,14 +59,6 @@ export class UpdateEmployeeTimeEntryUseCase {
 		const nextClockIn = clockIn ?? timeEntry.clockIn
 		const nextClockOut = clockOut ?? timeEntry.clockOut
 
-		if (nextClockIn.getTime() > Date.now()) {
-			return left(new BadRequestError('Clock-in time cannot be in the future'))
-		}
-
-		if (nextClockOut && nextClockOut.getTime() > Date.now()) {
-			return left(new BadRequestError('Clock-out time cannot be in the future'))
-		}
-
 		if (nextClockOut && nextClockOut < nextClockIn) {
 			return left(
 				new BadRequestError('Clock-out time cannot be earlier than clock-in time'),

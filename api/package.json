@@ -30,6 +30,7 @@
   },
   "private": true,
   "devDependencies": {
+    "@faker-js/faker": "^10.6.0",
     "@tsconfig/node24": "^24.0.5",
     "@types/better-sqlite3": "^9.6.0",
     "@types/bun": "latest",

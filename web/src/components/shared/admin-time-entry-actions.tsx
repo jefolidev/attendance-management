@@ -80,10 +80,17 @@ export function AdminTimeEntryActions({ employeeId, entry }: { employeeId: strin
             <DialogTitle>{editing === 'clockIn' ? 'Editar horário de início' : 'Editar horário de final'}</DialogTitle>
             <DialogDescription>Informe o novo horário desta batida. A data do registro será preservada.</DialogDescription>
           </DialogHeader>
-          <form onSubmit={(event) => { event.preventDefault(); updateMutation.mutate() }}>
+          <form onSubmit={(event) => {
+            event.preventDefault()
+            if (!isValidTime(time)) {
+              toast.error('Informe um horário válido no formato 24 horas, como 08:30.')
+              return
+            }
+            updateMutation.mutate()
+          }}>
             <div className="space-y-2">
               <Label htmlFor="admin-entry-time">Horário</Label>
-              <Input id="admin-entry-time" type="time" lang="pt-BR" step={60} required value={time} onChange={(event) => setTime(event.target.value)} />
+              <Input id="admin-entry-time" type="text" inputMode="numeric" placeholder="HH:mm" maxLength={5} pattern="[0-9]{2}:[0-9]{2}" required value={time} onChange={(event) => setTime(event.target.value)} />
             </div>
             <DialogFooter className="mt-6">
               <Button type="button" variant="outline" onClick={() => setEditing(null)}>Cancelar</Button>
@@ -103,4 +110,13 @@ function formatTimeInput(value: string) {
 function toServerTimestamp(dateTime: string, time: string) {
   const date = dateTime.slice(0, 10)
   return new Date(`${date}T${time}:00-03:00`).toISOString()
+}
+
+function isValidTime(value: string) {
+  const match = /^(\d{2}):(\d{2})$/.exec(value)
+  if (!match) return false
+
+  const hours = Number(match[1])
+  const minutes = Number(match[2])
+  return hours >= 0 && hours <= 23 && minutes >= 0 && minutes <= 59
 }

@@ -20,6 +20,10 @@ export async function getWorkSchedule() {
   return status === 404 ? null : data
 }
 
+export async function createWorkSchedule(payload: Pick<WorkSchedule, 'startTime' | 'endTime' | 'lateTolerance' | 'breaksPerDay' | 'days'>) {
+  await api.post('/employees/work-schedule', payload)
+}
+
 export async function updateWorkSchedule(payload: Partial<Pick<WorkSchedule, 'startTime' | 'endTime' | 'lateTolerance' | 'breaksPerDay'>>) {
   await api.patch('/employees/work-schedule', payload)
 }

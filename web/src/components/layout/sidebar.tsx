@@ -1,4 +1,4 @@
-import { ArrowLeft, ChartNoAxesColumnIncreasing, ClipboardList, Clock3, History, House, LogOut, Settings, TimerReset, UserRound, Users, WalletCards } from 'lucide-react'
+import { ChartNoAxesColumnIncreasing, ClipboardList, Clock3, History, House, LogOut, Settings, TimerReset, UserRound, Users, WalletCards } from 'lucide-react'
 import { NavLink } from 'react-router-dom'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -58,13 +58,6 @@ export function Sidebar({ onNavigate, admin = false }: { onNavigate?: () => void
           )
         })}
       </nav>
-
-      {admin && (
-        <NavLink to="/" onClick={onNavigate} className="mt-3 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
-          <ArrowLeft className="size-4" />
-          Visão de usuário
-        </NavLink>
-      )}
 
       <div className="mt-auto flex justify-end">
         <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground" onClick={() => void logout()} aria-label="Sair" title="Sair">

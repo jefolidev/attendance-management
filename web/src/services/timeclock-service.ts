@@ -38,9 +38,18 @@ export interface TimeEntryActionResponse {
 }
 
 export async function getEntries(page = 1, perPage = 100, sort: SortDirection = 'desc') {
-  const { data } = await api.get<EntriesResponse>('/employees/time-entries', {
+  const { data, status } = await api.get<EntriesResponse>('/employees/time-entries', {
     params: { page, perPage, sort },
+    validateStatus: (responseStatus) => responseStatus === 200 || responseStatus === 404,
   })
+
+  if (status === 404) {
+    return {
+      entries: [],
+      pagination: { page, perPage, hasNextPage: false, sort },
+    }
+  }
+
   return data
 }
 

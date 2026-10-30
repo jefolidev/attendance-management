@@ -95,11 +95,11 @@ function ScheduleMissingNotice() {
           <CalendarClock className="size-5" />
         </span>
         <div className="min-w-0 flex-1">
-          <h2 className="font-medium text-amber-950 dark:text-amber-100">Configure seu horário de trabalho</h2>
-          <p className="mt-1 text-sm leading-6 text-amber-900/75 dark:text-amber-200/75">Você precisa ter um horário configurado antes de registrar a entrada.</p>
+          <h2 className="font-medium text-amber-950 dark:text-amber-100">Horário de trabalho não encontrado</h2>
+          <p className="mt-1 text-sm leading-6 text-amber-900/75 dark:text-amber-200/75">Talvez seu horário de trabalho ainda não esteja cadastrado. Configure-o antes de registrar a entrada.</p>
         </div>
         <Button asChild variant="outline" className="shrink-0 border-amber-300 bg-transparent text-amber-900 hover:bg-amber-100 dark:border-amber-800 dark:text-amber-200 dark:hover:bg-amber-950/60">
-          <Link to="/configuracoes">Configurar horário</Link>
+          <Link to="/configuracoes">Ir para configurações</Link>
         </Button>
       </CardContent>
     </Card>

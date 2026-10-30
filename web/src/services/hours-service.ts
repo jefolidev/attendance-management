@@ -38,6 +38,21 @@ export interface DelayResponse {
   totalLateMinutes: number
   compensatedMinutes: number
   uncompensatedMinutes: number
+  days: DelayDay[]
+  pagination: Pagination & { totalPages: number }
+}
+
+export interface DelayDay {
+  date: string
+  clockIn: string
+  clockOut: string
+  expectedTime: string
+  lateMinutes: number
+  reason: 'LATE_ARRIVAL'
+  compensations: Array<{
+    durationInMinutes: number
+    reason: 'COMPENSATION'
+  }>
 }
 
 export async function getBalance() {
@@ -52,7 +67,9 @@ export async function getBalanceEvents(page = 1, perPage = 20) {
   return data
 }
 
-export async function getAccumulatedDelay() {
-  const { data } = await api.get<DelayResponse>('/employees/time-balance/accumulated-delay')
+export async function getAccumulatedDelay(page = 1, perPage = 10) {
+  const { data } = await api.get<DelayResponse>('/employees/time-balance/accumulated-delay', {
+    params: { page, perPage },
+  })
   return data
 }

@@ -8,7 +8,7 @@ import { EmptyState } from '@/components/shared/empty-state'
 import { LoadingState } from '@/components/shared/loading-state'
 import { PageHeader } from '@/components/shared/page-header'
 import { StatusBadge } from '@/components/shared/status-badge'
-import { formatDateKey, formatDateTime, formatMinutes } from '@/lib/formatters'
+import { formatDateKey, formatDateTime, formatDuration } from '@/lib/formatters'
 import { getEntries, type DayEntry } from '@/services/timeclock-service'
 
 interface HistoryRow {
@@ -60,14 +60,14 @@ export function HistoryPage() {
                     <p className="mt-2 text-sm text-muted-foreground">Entrada registrada às {formatDateTime(entry.occurredAt)}</p>
                     <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
                       {entry.breaks.length > 0 && <span>{entry.breaks.length} {entry.breaks.length === 1 ? 'pausa' : 'pausas'}</span>}
-                      {entry.entryMinutesLate > 0 && <span className="text-amber-700 dark:text-amber-400">{formatMinutes(entry.entryMinutesLate)} de atraso</span>}
+                      {entry.entryMinutesLate > 0 && <span className="text-amber-700 dark:text-amber-400">{formatDuration(entry.entryMinutesLate)} de atraso</span>}
                       {entry.departureMinutesEarly > 0 && <span className="text-amber-700 dark:text-amber-400">saída antecipada</span>}
                       {entry.departureMinutesLate > 0 && <span className="text-emerald-700 dark:text-emerald-400">hora extra</span>}
                     </div>
                   </div>
                   <div className="text-left sm:text-right">
                     <p className="text-xs text-muted-foreground">Tempo trabalhado</p>
-                    <p className="mt-1 font-medium tabular-nums">{entry.totalWorkedMinutes < 0 ? 'Em andamento' : formatMinutes(entry.totalWorkedMinutes)}</p>
+                    <p className="mt-1 font-medium tabular-nums">{entry.totalWorkedMinutes < 0 ? 'Em andamento' : formatDuration(entry.totalWorkedMinutes)}</p>
                   </div>
                 </div>
               ))}

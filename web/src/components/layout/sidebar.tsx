@@ -1,4 +1,4 @@
-import { Clock3, History, House, TimerReset, WalletCards } from 'lucide-react'
+import { Clock3, History, House, Settings, TimerReset, WalletCards } from 'lucide-react'
 import { NavLink } from 'react-router-dom'
 import { cn } from '@/lib/utils'
 import { Separator } from '@/components/ui/separator'
@@ -9,6 +9,7 @@ const items = [
   { to: '/historico', label: 'Histórico', icon: History },
   { to: '/banco-de-horas', label: 'Banco de horas', icon: WalletCards },
   { to: '/atrasos', label: 'Atrasos', icon: TimerReset },
+  { to: '/settings', label: 'Configurações', icon: Settings },
 ]
 
 export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {

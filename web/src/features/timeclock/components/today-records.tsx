@@ -2,7 +2,7 @@ import { Coffee, LogIn, Pause, Timer } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { EmptyState } from '@/components/shared/empty-state'
 import { StatusBadge } from '@/components/shared/status-badge'
-import { formatDateTime, formatMinutes } from '@/lib/formatters'
+import { formatDateTime, formatDuration } from '@/lib/formatters'
 import type { DayEntry } from '@/services/timeclock-service'
 
 export function TodayRecords({ entry }: { entry: DayEntry | null }) {
@@ -23,8 +23,8 @@ export function TodayRecords({ entry }: { entry: DayEntry | null }) {
             <p className="text-sm font-medium">Entrada</p>
             <p className="text-sm text-muted-foreground">{formatDateTime(entry.occurredAt)}</p>
           </div>
-          {entry.entryMinutesLate > 0 && <span className="ml-auto text-right text-xs text-amber-700 dark:text-amber-400">{formatMinutes(entry.entryMinutesLate)} de atraso</span>}
-          {entry.entryMinutesEarly > 0 && <span className="ml-auto text-right text-xs text-emerald-700 dark:text-emerald-400">{formatMinutes(entry.entryMinutesEarly)} adiantado</span>}
+          {entry.entryMinutesLate > 0 && <span className="ml-auto text-right text-xs text-amber-700 dark:text-amber-400">{formatDuration(entry.entryMinutesLate)} de atraso</span>}
+          {entry.entryMinutesEarly > 0 && <span className="ml-auto text-right text-xs text-emerald-700 dark:text-emerald-400">{formatDuration(entry.entryMinutesEarly)} adiantado</span>}
         </div>
 
         {entry.breaks.map((breakEntry, index) => (
@@ -41,7 +41,7 @@ export function TodayRecords({ entry }: { entry: DayEntry | null }) {
 
         <div className="flex items-center gap-3 border-t pt-4 text-sm text-muted-foreground">
           <Timer className="size-4" />
-          <span>{entry.totalWorkedMinutes < 0 ? 'Jornada em andamento' : `${formatMinutes(entry.totalWorkedMinutes)} trabalhados`}</span>
+          <span>{entry.totalWorkedMinutes < 0 ? 'Jornada em andamento' : `${formatDuration(entry.totalWorkedMinutes)} trabalhados`}</span>
           {entry.departureMinutesEarly > 0 && <span className="ml-auto text-xs text-amber-700 dark:text-amber-400">saída antecipada</span>}
           {entry.departureMinutesLate > 0 && <span className="ml-auto text-xs text-emerald-700 dark:text-emerald-400">hora extra</span>}
           <Pause className="hidden size-4" aria-hidden="true" />

@@ -23,6 +23,7 @@ export const router = createBrowserRouter([
           { path: 'banco-de-horas', element: <HoursPage /> },
           { path: 'atrasos', element: <DelaysPage /> },
           { path: 'configuracoes', element: <SettingsPage /> },
+          { path: 'settings', element: <SettingsPage /> },
         ],
       },
     ],

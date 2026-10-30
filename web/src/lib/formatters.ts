@@ -9,12 +9,23 @@ const ptBrDate = new Intl.DateTimeFormat('pt-BR', {
   month: 'long',
 })
 
+const ptBrShortDate = new Intl.DateTimeFormat('pt-BR', {
+  weekday: 'short',
+  day: 'numeric',
+  month: 'short',
+})
+
 export function formatDateTime(value: string | Date) {
   return ptBrDateTime.format(new Date(value))
 }
 
 export function formatDate(value: string | Date) {
   const formatted = ptBrDate.format(new Date(value))
+  return formatted.charAt(0).toUpperCase() + formatted.slice(1)
+}
+
+export function formatShortDate(value: string | Date) {
+  const formatted = ptBrShortDate.format(new Date(value)).replace('.', '')
   return formatted.charAt(0).toUpperCase() + formatted.slice(1)
 }
 
@@ -26,12 +37,18 @@ export function formatTime(value: string | Date) {
 }
 
 export function formatMinutes(minutes: number) {
-  const absolute = Math.abs(minutes)
-  const hours = Math.floor(absolute / 60)
-  const rest = absolute % 60
-  const formatted = `${hours}h ${rest.toString().padStart(2, '0')}min`
-
+  const formatted = formatDuration(minutes)
   return minutes < 0 ? `-${formatted}` : formatted
+}
+
+export function formatDuration(totalMinutes: number) {
+  const absolute = Math.abs(totalMinutes)
+  const hours = Math.floor(absolute / 60)
+  const minutes = absolute % 60
+
+  if (hours === 0) return `${minutes}min`
+  if (minutes === 0) return `${hours}h`
+  return `${hours}h ${minutes}min`
 }
 
 export function formatMinutesCompact(minutes: number) {

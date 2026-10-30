@@ -1,44 +1,120 @@
-import { useQuery } from '@tanstack/react-query'
-import { LogOut, Moon, Sun } from 'lucide-react'
-import { useTheme } from 'next-themes'
-import { useAuth } from '@/features/auth/use-auth'
-import { PageHeader } from '@/components/shared/page-header'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Separator } from '@/components/ui/separator'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { LogOut, Save } from 'lucide-react'
+import { useEffect, type ComponentProps } from 'react'
+import { useForm } from 'react-hook-form'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { z } from 'zod'
 import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { EmptyState } from '@/components/shared/empty-state'
 import { LoadingState } from '@/components/shared/loading-state'
-import { getWorkSchedule } from '@/services/work-schedule-service'
+import { PageHeader } from '@/components/shared/page-header'
+import { useAuth } from '@/features/auth/use-auth'
+import { getErrorMessage } from '@/lib/formatters'
+import { getWorkSchedule, updateWorkSchedule } from '@/services/work-schedule-service'
+import { ThemeToggle } from '@/components/layout/theme-toggle'
+import { toast } from 'sonner'
+
+const timePattern = /^\d{2}:\d{2}$/
+
+const workScheduleSchema = z.object({
+  startTime: z.string().regex(timePattern, 'Informe um horário válido.'),
+  endTime: z.string().regex(timePattern, 'Informe um horário válido.'),
+  breakStartTime: z.string().regex(timePattern, 'Informe um horário válido.').or(z.literal('')),
+  breakEndTime: z.string().regex(timePattern, 'Informe um horário válido.').or(z.literal('')),
+}).refine((values) => Boolean(values.breakStartTime) === Boolean(values.breakEndTime), {
+  message: 'Informe início e fim do intervalo.',
+  path: ['breakEndTime'],
+})
+
+type WorkScheduleForm = z.infer<typeof workScheduleSchema>
 
 export function SettingsPage() {
   const { logout } = useAuth()
-  const { theme, setTheme } = useTheme()
+  const queryClient = useQueryClient()
   const scheduleQuery = useQuery({ queryKey: ['work-schedule'], queryFn: getWorkSchedule })
+  const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<WorkScheduleForm>({
+    resolver: zodResolver(workScheduleSchema),
+    defaultValues: { startTime: '', endTime: '', breakStartTime: '', breakEndTime: '' },
+  })
+
+  useEffect(() => {
+    if (!scheduleQuery.data) return
+    reset({
+      startTime: scheduleQuery.data.startTime,
+      endTime: scheduleQuery.data.endTime,
+      breakStartTime: scheduleQuery.data.breakStartTime || '',
+      breakEndTime: scheduleQuery.data.breakEndTime || '',
+    })
+  }, [reset, scheduleQuery.data])
+
+  const onSubmit = async (values: WorkScheduleForm) => {
+    try {
+      await updateWorkSchedule({
+        startTime: values.startTime,
+        endTime: values.endTime,
+        breakStartTime: values.breakStartTime || null,
+        breakEndTime: values.breakEndTime || null,
+      })
+      await queryClient.invalidateQueries({ queryKey: ['work-schedule'] })
+      toast.success('Horário de trabalho atualizado.')
+    } catch (error) {
+      toast.error(getErrorMessage(error))
+    }
+  }
 
   return (
     <div className="space-y-8">
-      <PageHeader title="Configurações" description="Preferências simples para o uso diário do sistema." />
+      <PageHeader title="Configurações" description="Ajuste sua jornada e preferências de acesso." />
 
-      <div className="grid gap-5 lg:grid-cols-2">
-        <Card className="border-border/70 shadow-none">
-          <CardHeader><CardTitle className="text-base">Aparência</CardTitle></CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between gap-4"><div><p className="text-sm font-medium">Tema da interface</p><p className="text-sm text-muted-foreground">Sua escolha fica salva neste dispositivo.</p></div><div className="flex gap-1 rounded-lg bg-muted p-1"><Button variant={theme === 'light' ? 'secondary' : 'ghost'} size="sm" onClick={() => setTheme('light')}><Sun className="mr-2 size-4" />Claro</Button><Button variant={theme === 'dark' ? 'secondary' : 'ghost'} size="sm" onClick={() => setTheme('dark')}><Moon className="mr-2 size-4" />Escuro</Button></div></div>
-          </CardContent>
-        </Card>
+      <Card className="border-border/70 shadow-none">
+        <CardHeader><CardTitle className="text-lg font-medium">Horário de trabalho</CardTitle></CardHeader>
+        <CardContent>
+          {scheduleQuery.isLoading && <LoadingState rows={2} />}
+          {scheduleQuery.isError && <EmptyState title="Horário indisponível" description="Não foi possível carregar o horário de trabalho." action={<Button variant="outline" onClick={() => void scheduleQuery.refetch()}>Tentar novamente</Button>} />}
+          {scheduleQuery.data && (
+            <form className="grid gap-5 sm:grid-cols-2" onSubmit={handleSubmit(onSubmit)}>
+              <TimeField id="start-time" label="Horário de entrada" error={errors.startTime?.message} {...register('startTime')} />
+              <TimeField id="end-time" label="Horário de saída" error={errors.endTime?.message} {...register('endTime')} />
+              <TimeField id="break-start-time" label="Início do intervalo" hint="Opcional" error={errors.breakStartTime?.message} {...register('breakStartTime')} />
+              <TimeField id="break-end-time" label="Fim do intervalo" hint="Opcional" error={errors.breakEndTime?.message} {...register('breakEndTime')} />
+              <div className="flex justify-end sm:col-span-2">
+                <Button type="submit" className="gap-2" disabled={isSubmitting}><Save className="size-4" />{isSubmitting ? 'Salvando…' : 'Salvar alterações'}</Button>
+              </div>
+            </form>
+          )}
+        </CardContent>
+      </Card>
 
-        <Card className="border-border/70 shadow-none">
-          <CardHeader><CardTitle className="text-base">Jornada prevista</CardTitle></CardHeader>
-          <CardContent>
-            {scheduleQuery.isLoading && <LoadingState rows={1} />}
-            {scheduleQuery.isError && <p className="text-sm text-muted-foreground">A jornada não está disponível.</p>}
-            {scheduleQuery.data && <div className="space-y-2 text-sm"><div className="flex justify-between"><span className="text-muted-foreground">Horário</span><span className="font-medium">{scheduleQuery.data.startTime} – {scheduleQuery.data.endTime}</span></div><div className="flex justify-between"><span className="text-muted-foreground">Tolerância</span><span className="font-medium">{scheduleQuery.data.lateTolerance} min</span></div><div className="flex justify-between"><span className="text-muted-foreground">Pausas por dia</span><span className="font-medium">{scheduleQuery.data.breaksPerDay}</span></div></div>}
-          </CardContent>
-        </Card>
+      <Card className="border-border/70 shadow-none">
+        <CardHeader><CardTitle className="text-lg font-medium">Preferências</CardTitle></CardHeader>
+        <CardContent className="flex items-center justify-between gap-4">
+          <div><p className="text-sm font-medium">Tema da interface</p><p className="text-sm text-muted-foreground">A escolha fica salva neste dispositivo.</p></div>
+          <ThemeToggle />
+        </CardContent>
+      </Card>
 
-        <Card className="border-border/70 shadow-none lg:col-span-2">
-          <CardContent className="p-5"><div className="flex items-center justify-between gap-4"><div><p className="text-sm font-medium">Sessão atual</p><p className="text-sm text-muted-foreground">Encerre o acesso neste dispositivo.</p></div><Button variant="outline" className="gap-2" onClick={logout}><LogOut className="size-4" />Sair</Button></div><Separator className="my-5" /><p className="text-xs text-muted-foreground">O logout remove o token salvo no navegador. A API atual não possui uma rota de logout.</p></CardContent>
-        </Card>
-      </div>
+      <Card className="border-border/70 shadow-none">
+        <CardHeader><CardTitle className="text-lg font-medium">Conta</CardTitle></CardHeader>
+        <CardContent className="flex items-center justify-between gap-4">
+          <p className="text-sm text-muted-foreground">Encerre a sessão neste dispositivo.</p>
+          <Button variant="outline" className="gap-2" onClick={logout}><LogOut className="size-4" />Sair</Button>
+        </CardContent>
+      </Card>
+    </div>
+  )
+}
+
+type TimeFieldProps = ComponentProps<typeof Input> & { label: string; hint?: string; error?: string }
+
+function TimeField({ id, label, hint, error, ...props }: TimeFieldProps) {
+  return (
+    <div className="space-y-2">
+      <Label htmlFor={id}>{label}{hint && <span className="ml-1 text-muted-foreground">({hint})</span>}</Label>
+      <Input id={id} type="time" aria-invalid={Boolean(error)} {...props} />
+      {error && <p className="text-xs text-destructive">{error}</p>}
     </div>
   )
 }

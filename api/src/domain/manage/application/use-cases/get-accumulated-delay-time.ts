@@ -1,5 +1,9 @@
 import { type Either, left, right } from '@src/core/either'
 import { NotFoundError } from '@src/core/entities/errors/not-found-error'
+import {
+	normalizePagination,
+	type PaginationMeta,
+} from '@src/core/repositories/pagination'
 import { WORK_SCHEDULE_TIMEZONE } from '@src/core/time/work-schedule-timezone'
 import dayjs from 'dayjs'
 import timezone from 'dayjs/plugin/timezone'
@@ -13,6 +17,25 @@ dayjs.extend(timezone)
 
 interface GetAccumulatedDelayTimeUseCaseRequest {
 	requesterId: string
+	page?: number
+	perPage?: number
+}
+
+export interface DelayDay {
+	date: Date
+	clockIn: Date
+	clockOut: Date
+	expectedTime: string
+	lateMinutes: number
+	reason: 'LATE_ARRIVAL'
+	compensations: Array<{
+		durationInMinutes: number
+		reason: 'COMPENSATION'
+	}>
+}
+
+export interface DelayPagination extends PaginationMeta {
+	totalPages: number
 }
 
 type GetAccumulatedDelayTimeUseCaseResponse = Either<
@@ -21,6 +44,8 @@ type GetAccumulatedDelayTimeUseCaseResponse = Either<
 		totalLateMinutes: number
 		compensatedMinutes: number
 		uncompensatedMinutes: number
+		days: DelayDay[]
+		pagination: DelayPagination
 	}
 >
 
@@ -53,10 +78,17 @@ export class GetAccumulatedDelayTimeUseCase {
 		)
 
 		if (!timeEntries || timeEntries.length === 0) {
+			const pagination = normalizePagination({
+				page: request.page,
+				perPage: request.perPage ?? 10,
+			})
+
 			return right({
 				compensatedMinutes: 0,
 				totalLateMinutes: 0,
 				uncompensatedMinutes: 0,
+				days: [],
+			pagination: { ...pagination, hasNextPage: false, totalPages: 1 },
 			})
 		}
 
@@ -73,8 +105,8 @@ export class GetAccumulatedDelayTimeUseCase {
 			)
 
 		let compensatedMinutes = 0
-		let uncompensatedMinutes = 0
 		let totalLateMinutes = 0
+		const delayDays: DelayDay[] = []
 
 		for (const entry of completedTimeEntries) {
 			if (!entry.clockOut) continue
@@ -92,17 +124,42 @@ export class GetAccumulatedDelayTimeUseCase {
 			const extraMinutes = Math.max(0, clockOut.diff(expectedEnd, 'minute'))
 
 			totalLateMinutes += lateMinutes
-			compensatedMinutes += Math.min(lateMinutes, extraMinutes)
-			uncompensatedMinutes = Math.max(
-				0,
-				uncompensatedMinutes + lateMinutes - extraMinutes,
-			)
+			const dayCompensatedMinutes = Math.min(lateMinutes, extraMinutes)
+			compensatedMinutes += dayCompensatedMinutes
+
+			if (lateMinutes > 0) {
+				delayDays.push({
+					date: clockIn.toDate(),
+					clockIn: clockIn.toDate(),
+					clockOut: clockOut.toDate(),
+					expectedTime: workSchedule.startTime,
+					lateMinutes,
+					reason: 'LATE_ARRIVAL',
+					compensations:
+						dayCompensatedMinutes > 0
+							? [{ durationInMinutes: dayCompensatedMinutes, reason: 'COMPENSATION' }]
+							: [],
+				})
+			}
 		}
+
+		const pagination = normalizePagination({
+			page: request.page,
+			perPage: request.perPage ?? 10,
+		})
+		const start = (pagination.page - 1) * pagination.perPage
+		const days = delayDays.slice(start, start + pagination.perPage)
 
 		return right({
 			compensatedMinutes,
 			totalLateMinutes,
-			uncompensatedMinutes,
+			uncompensatedMinutes: Math.max(0, totalLateMinutes - compensatedMinutes),
+			days,
+			pagination: {
+				...pagination,
+				hasNextPage: delayDays.length > start + days.length,
+				totalPages: Math.max(1, Math.ceil(delayDays.length / pagination.perPage)),
+			},
 		})
 	}
 

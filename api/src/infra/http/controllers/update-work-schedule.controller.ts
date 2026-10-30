@@ -7,6 +7,8 @@ export const updateWorkScheduleBodySchema = z
   .object({
     startTime: z.string().regex(/^\d{2}:\d{2}$/).optional(),
     endTime: z.string().regex(/^\d{2}:\d{2}$/).optional(),
+    breakStartTime: z.string().regex(/^\d{2}:\d{2}$/).nullable().optional(),
+    breakEndTime: z.string().regex(/^\d{2}:\d{2}$/).nullable().optional(),
     lateTolerance: z.number().int().nonnegative().optional(),
     breaksPerDay: z.number().int().nonnegative().optional(),
     days: z.array(z.number().int().min(0).max(6)).nonempty().optional(),

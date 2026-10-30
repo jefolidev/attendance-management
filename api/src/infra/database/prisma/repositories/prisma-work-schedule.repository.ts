@@ -54,6 +54,8 @@ export class PrismaWorkScheduleRepository implements WorkScheduleRepository {
             data: {
               startTime: workSchedule.startTime,
               endTime: workSchedule.endTime,
+              breakStartTime: workSchedule.breakStartTime,
+              breakEndTime: workSchedule.breakEndTime,
               lateTolerance: workSchedule.lateTolerance,
               breaksPerDay: workSchedule.breaksPerDay,
             },

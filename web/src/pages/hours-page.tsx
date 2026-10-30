@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge'
 import { EmptyState } from '@/components/shared/empty-state'
 import { LoadingState } from '@/components/shared/loading-state'
 import { PageHeader } from '@/components/shared/page-header'
-import { formatDateTime, formatMinutes, formatMinutesCompact } from '@/lib/formatters'
+import { formatDateTime, formatDuration } from '@/lib/formatters'
 import { getBalance, getBalanceEvents } from '@/services/hours-service'
 
 const reasonLabels = {
@@ -21,6 +21,8 @@ export function HoursPage() {
   const balanceQuery = useQuery({ queryKey: ['time-balance'], queryFn: getBalance })
   const eventsQuery = useQuery({ queryKey: ['balance-events', 1, 20], queryFn: () => getBalanceEvents(1, 20) })
   const balance = balanceQuery.data?.balance
+  const balanceMinutes = balance?.balanceMinutes ?? 0
+  const hasDebt = balanceMinutes < 0
 
   return (
     <div className="space-y-8">
@@ -28,17 +30,17 @@ export function HoursPage() {
 
       {balanceQuery.isLoading ? <LoadingState rows={2} /> : balanceQuery.isError ? <EmptyState title="Saldo indisponível" description="Ainda não há um banco de horas disponível para este funcionário." /> : (
         <section className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_15rem]">
-          <Card className="border-border/70 bg-primary text-primary-foreground shadow-none">
+          <Card className={hasDebt ? 'border-red-200 bg-red-50 text-red-700 shadow-none dark:border-red-900/60 dark:bg-red-950 dark:text-red-300' : 'border-border/70 bg-primary text-primary-foreground shadow-none'}>
             <CardContent className="flex min-h-44 flex-col justify-between p-6">
-              <div className="flex items-center gap-2 text-sm text-primary-foreground/70"><WalletCards className="size-4" /> Saldo atual</div>
-              <p className="text-5xl font-semibold tracking-[-0.06em] tabular-nums">{balance ? formatMinutesCompact(balance.balanceMinutes) : '00:00'}</p>
-              <p className="text-sm text-primary-foreground/70">{balance?.updatedAt ? `Atualizado em ${formatDateTime(balance.updatedAt)}` : 'Ainda sem atualização registrada'}</p>
+              <div className={hasDebt ? 'flex items-center gap-2 text-sm text-red-700/70 dark:text-red-300/70' : 'flex items-center gap-2 text-sm text-primary-foreground/70'}><WalletCards className="size-4" /> Saldo atual</div>
+              <div><p className="text-5xl font-semibold tracking-[-0.06em] tabular-nums">{balance ? formatDuration(Math.abs(balanceMinutes)) : '0min'}</p><p className="mt-1 text-sm font-medium">{hasDebt ? 'Em atraso' : 'Saldo positivo'}</p></div>
+              <p className={hasDebt ? 'text-sm text-red-700/70 dark:text-red-300/70' : 'text-sm text-primary-foreground/70'}>{balance?.updatedAt ? `Atualizado em ${formatDateTime(balance.updatedAt)}` : 'Ainda sem atualização registrada'}</p>
             </CardContent>
           </Card>
           <Card className="border-border/70 shadow-none">
             <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground">Leitura do saldo</CardTitle></CardHeader>
             <CardContent>
-              <p className="text-2xl font-semibold tabular-nums">{balance ? formatMinutes(balance.balanceMinutes) : 'Sem saldo'}</p>
+              <p className="text-2xl font-semibold tabular-nums">{balance ? `${hasDebt ? '' : '+'}${formatDuration(Math.abs(balanceMinutes))}` : 'Sem saldo'}</p>
               <p className="mt-2 text-sm text-muted-foreground">Valor consolidado pela API, sem cálculo no frontend.</p>
             </CardContent>
           </Card>
@@ -61,7 +63,7 @@ export function HoursPage() {
                       {isCredit ? <ArrowUpRight className="size-4" /> : <ArrowDownLeft className="size-4" />}
                     </span>
                     <div className="min-w-0 flex-1"><p className="truncate text-sm font-medium">{reasonLabels[event.reason]}</p><p className="text-xs text-muted-foreground">{formatDateTime(event.createdAt)}</p></div>
-                    <Badge variant="outline" className={isCredit ? 'border-emerald-300 text-emerald-700 dark:border-emerald-800 dark:text-emerald-400' : 'border-amber-300 text-amber-700 dark:border-amber-800 dark:text-amber-400'}>{isCredit ? '+' : '-'}{formatMinutes(event.durationInMinutes)}</Badge>
+                    <Badge variant="outline" className={isCredit ? 'border-emerald-300 text-emerald-700 dark:border-emerald-800 dark:text-emerald-400' : 'border-amber-300 text-amber-700 dark:border-amber-800 dark:text-amber-400'}>{isCredit ? '+' : '-'}{formatDuration(event.durationInMinutes)}</Badge>
                   </div>
                 })}
               </div>

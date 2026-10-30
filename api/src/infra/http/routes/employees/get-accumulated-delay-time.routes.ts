@@ -4,7 +4,10 @@ import { PrismaEmployeeRepository } from "@src/infra/database/prisma/repositorie
 import { PrismaTimeEntryRepository } from "@src/infra/database/prisma/repositories/prisma-time-entry.repository";
 import { PrismaWorkScheduleRepository } from "@src/infra/database/prisma/repositories/prisma-work-schedule.repository";
 import type { FastifyInstance } from "fastify";
-import { GetAccumulatedDelayTimeController } from "../../controllers/get-accumulated-delay-time.controller";
+import {
+  getAccumulatedDelayTimeQuerySchema,
+  GetAccumulatedDelayTimeController,
+} from "../../controllers/get-accumulated-delay-time.controller";
 
 export default async function getAccumulatedDelayTimeRoute(
   fastify: FastifyInstance,
@@ -22,7 +25,10 @@ export default async function getAccumulatedDelayTimeRoute(
   fastify.withTypeProvider<ZodTypeProvider>().route({
     method: "GET",
     url: "/employees/time-balance/accumulated-delay",
-    schema: { tags: ["employees", "time-balance"] },
+    schema: {
+      querystring: getAccumulatedDelayTimeQuerySchema,
+      tags: ["employees", "time-balance"],
+    },
     handler: controller.handle.bind(controller),
   });
 }

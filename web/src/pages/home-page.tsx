@@ -8,7 +8,7 @@ import { LoadingState } from '@/components/shared/loading-state'
 import { TimeClockAction } from '@/features/timeclock/components/time-clock-action'
 import { useTimeClockStatus } from '@/features/timeclock/hooks/use-time-clock-status'
 import { useAuth } from '@/features/auth/use-auth'
-import { formatDate, formatMinutes, formatTime } from '@/lib/formatters'
+import { formatDate, formatDuration, formatTime } from '@/lib/formatters'
 
 export function HomePage() {
   const { employee } = useAuth()
@@ -57,9 +57,20 @@ export function HomePage() {
             <CardContent className="p-5 sm:p-7">
               <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
                 <SummaryItem label="Entrada" value={formatTime(clock.todayEntry.occurredAt)} />
-                <SummaryItem label="Saída" value="Não retornada" hint="Disponível após atualização da API" />
-                <SummaryItem label="Tempo total" value={clock.todayEntry.totalWorkedMinutes < 0 ? 'Em andamento' : formatMinutes(clock.todayEntry.totalWorkedMinutes)} />
-                <SummaryItem label="Pausas" value={`${clock.todayEntry.breaks.length} ${clock.todayEntry.breaks.length === 1 ? 'registrada' : 'registradas'}`} hint="Duração não retornada pela API" />
+                {clock.todayEntry.clockOut ? (
+                  <SummaryItem label="Saída" value={formatTime(clock.todayEntry.clockOut)} />
+                ) : (
+                  <div>
+                    <p className="text-sm text-muted-foreground">Saída</p>
+                    <EmptyState
+                      title="Sem registros de saída"
+                      description="A API ainda não retornou esse horário."
+                      className="mt-2 min-h-0 items-start border-0 bg-transparent p-0 text-left"
+                    />
+                  </div>
+                )}
+                <SummaryItem label="Tempo total" value={clock.todayEntry.totalWorkedMinutes < 0 ? 'Em andamento' : formatDuration(clock.todayEntry.totalWorkedMinutes)} />
+                {clock.todayEntry.totalBreakMinutes > 0 && <SummaryItem label="Tempo de pausa" value={formatDuration(clock.todayEntry.totalBreakMinutes)} />}
               </div>
             </CardContent>
           </Card>

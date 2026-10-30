@@ -19,6 +19,8 @@ export class PrismaWorkScheduleMapper {
       id: schedule.id.toString(),
       startTime: schedule.startTime,
       endTime: schedule.endTime,
+      breakStartTime: schedule.breakStartTime ?? null,
+      breakEndTime: schedule.breakEndTime ?? null,
       lateTolerance: schedule.lateTolerance,
       breaksPerDay: schedule.breaksPerDay,
       employeeId: schedule.employeeId.toString(),
@@ -45,6 +47,8 @@ export class PrismaWorkScheduleMapper {
         employeeId: new UniqueEntityId(raw.employeeId),
         startTime: raw.startTime,
         endTime: raw.endTime,
+        breakStartTime: raw.breakStartTime,
+        breakEndTime: raw.breakEndTime,
         lateTolerance: raw.lateTolerance,
         breaksPerDay: raw.breaksPerDay,
         days: workDays

@@ -10,7 +10,9 @@ export interface TimeEntryBreak {
 export interface DayEntry {
   timeEntryStage: TimeEntryStage
   occurredAt: string
+  clockOut: string | null
   breaks: TimeEntryBreak[]
+  totalBreakMinutes: number
   entryMinutesEarly: number
   entryMinutesLate: number
   departureMinutesEarly: number

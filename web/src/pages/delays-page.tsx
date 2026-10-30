@@ -1,39 +1,83 @@
 import { useQuery } from '@tanstack/react-query'
-import { AlertTriangle, CheckCircle2, TimerReset } from 'lucide-react'
+import { AlertTriangle, ChevronLeft, ChevronRight, Clock3, TimerReset } from 'lucide-react'
+import { useState } from 'react'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { EmptyState } from '@/components/shared/empty-state'
 import { LoadingState } from '@/components/shared/loading-state'
 import { PageHeader } from '@/components/shared/page-header'
-import { formatMinutes } from '@/lib/formatters'
+import { formatDuration, formatShortDate, formatTime } from '@/lib/formatters'
 import { getAccumulatedDelay } from '@/services/hours-service'
 
 export function DelaysPage() {
-  const query = useQuery({ queryKey: ['accumulated-delay'], queryFn: getAccumulatedDelay })
-  const delay = query.data
+  const [page, setPage] = useState(1)
+  const delayQuery = useQuery({
+    queryKey: ['accumulated-delay', page],
+    queryFn: () => getAccumulatedDelay(page, 10),
+  })
+  const delay = delayQuery.data
 
   return (
     <div className="space-y-8">
-      <PageHeader title="Atrasos" description="Veja o resumo de atrasos calculado pelo backend." />
-      {query.isLoading && <LoadingState rows={3} />}
-      {query.isError && <EmptyState title="Resumo indisponível" description="Não foi possível carregar os atrasos acumulados." />}
-      {!query.isLoading && !query.isError && delay && (
-        <div className="grid gap-4 md:grid-cols-3">
-          <MetricCard icon={TimerReset} label="Total de atrasos" value={formatMinutes(delay.totalLateMinutes)} tone="amber" />
-          <MetricCard icon={CheckCircle2} label="Compensado" value={formatMinutes(delay.compensatedMinutes)} tone="green" />
-          <MetricCard icon={AlertTriangle} label="Não compensado" value={formatMinutes(delay.uncompensatedMinutes)} tone="red" />
-        </div>
+      <PageHeader title="Atrasos" description="Acompanhe o que foi compensado e os dias que pedem atenção." />
+
+      {delayQuery.isLoading && <LoadingState rows={4} />}
+      {delayQuery.isError && <EmptyState title="Atrasos indisponíveis" description="Não foi possível carregar os atrasos acumulados." action={<Button onClick={() => void delayQuery.refetch()}>Tentar novamente</Button>} />}
+      {!delayQuery.isLoading && !delayQuery.isError && delay && (
+        <>
+          <section className="grid gap-4 md:grid-cols-[1.35fr_1fr_1fr]">
+            <MetricCard label="Total Compensado" value={formatDuration(delay.compensatedMinutes)} icon={TimerReset} featured />
+            <MetricCard label="Horas Atrasadas" value={formatDuration(delay.totalLateMinutes)} icon={AlertTriangle} />
+            <MetricCard label="Horas/Minutos Não Compensados" value={formatDuration(delay.uncompensatedMinutes)} icon={Clock3} />
+          </section>
+
+          <section className="space-y-4">
+            <div><h2 className="text-lg font-semibold tracking-tight">Dias com atraso</h2><p className="text-sm text-muted-foreground">Registros calculados a partir do seu horário de trabalho.</p></div>
+            {delay.days.length === 0 ? <EmptyState title="Nenhum atraso registrado" description="Os dias com chegada após o horário esperado aparecerão aqui." /> : (
+              <div className="space-y-3">
+                {delay.days.map((day) => (
+                  <Card key={`${day.date}-${day.clockIn}`} className="border-border/70 shadow-none">
+                    <CardContent className="grid gap-4 p-5 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
+                      <div className="min-w-0">
+                        <p className="font-medium">{formatShortDate(day.date)}</p>
+                        <div className="mt-2 flex flex-wrap items-center gap-2">
+                          <Badge variant="secondary" className="font-normal">Chegou às {formatTime(day.clockIn)}</Badge>
+                          <span className="text-sm text-muted-foreground">Esperado: {day.expectedTime}</span>
+                        </div>
+                        <p className="mt-2 text-sm text-muted-foreground">Motivo: {day.reason === 'LATE_ARRIVAL' ? 'Atraso na entrada' : day.reason}</p>
+                        {day.compensations.length > 0 && <div className="mt-2 space-y-1 text-sm text-emerald-700 dark:text-emerald-400">{day.compensations.map((compensation) => <p key={compensation.reason}>Compensado: +{formatDuration(compensation.durationInMinutes)}</p>)}</div>}
+                      </div>
+                      <p className="text-left text-sm font-medium text-amber-700 dark:text-amber-400 sm:text-right">{formatDuration(day.lateMinutes)} de atraso</p>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </section>
+
+          {(delay.pagination.hasNextPage || page > 1) && (
+            <div className="flex items-center justify-between border-t pt-5">
+              <p className="text-sm text-muted-foreground">Página {page} de {delay.pagination.totalPages}</p>
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" disabled={page === 1} onClick={() => setPage((current) => Math.max(1, current - 1))}><ChevronLeft className="size-4" /> Anterior</Button>
+                <Button variant="outline" size="sm" disabled={!delay.pagination.hasNextPage} onClick={() => setPage((current) => current + 1)}>Próxima <ChevronRight className="size-4" /></Button>
+              </div>
+            </div>
+          )}
+        </>
       )}
-      {!query.isLoading && !query.isError && !delay && <EmptyState title="Nenhum atraso registrado" description="Quando a API retornar um resumo, ele aparecerá aqui." />}
     </div>
   )
 }
 
-function MetricCard({ icon: Icon, label, value, tone }: { icon: typeof TimerReset; label: string; value: string; tone: 'amber' | 'green' | 'red' }) {
-  const styles = {
-    amber: 'bg-amber-50 text-amber-700 dark:bg-amber-950/30 dark:text-amber-400',
-    green: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400',
-    red: 'bg-red-50 text-red-700 dark:bg-red-950/30 dark:text-red-400',
-  }
-
-  return <Card className="border-border/70 shadow-none"><CardContent className="p-5"><span className={`grid size-9 place-items-center rounded-full ${styles[tone]}`}><Icon className="size-4" /></span><p className="mt-5 text-sm text-muted-foreground">{label}</p><p className="mt-1 text-2xl font-semibold tabular-nums">{value}</p></CardContent></Card>
+function MetricCard({ label, value, icon: Icon, featured = false }: { label: string; value: string; icon: typeof TimerReset; featured?: boolean }) {
+  return (
+    <Card className={featured ? 'border-primary/30 bg-primary text-primary-foreground shadow-none' : 'border-border/70 shadow-none'}>
+      <CardContent className={featured ? 'flex min-h-44 flex-col justify-between p-6' : 'flex min-h-36 flex-col justify-between p-5'}>
+        <Icon className={featured ? 'size-5 text-primary-foreground/70' : 'size-4 text-muted-foreground'} />
+        <div><p className={featured ? 'text-sm text-primary-foreground/70' : 'text-sm text-muted-foreground'}>{label}</p><p className={featured ? 'mt-2 text-4xl font-semibold tracking-[-0.06em] tabular-nums' : 'mt-2 text-xl font-semibold tabular-nums'}>{value}</p></div>
+      </CardContent>
+    </Card>
+  )
 }

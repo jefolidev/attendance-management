@@ -1,6 +1,12 @@
 import { NotFoundError } from "@src/core/entities/errors/not-found-error";
 import type { GetAccumulatedDelayTimeUseCase } from "@src/domain/manage/application/use-cases/get-accumulated-delay-time";
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
+import { z } from "zod";
+
+export const getAccumulatedDelayTimeQuerySchema = z.object({
+  page: z.coerce.number().int().positive().optional(),
+  perPage: z.coerce.number().int().positive().max(100).optional(),
+});
 
 export class GetAccumulatedDelayTimeController {
   constructor(
@@ -9,6 +15,7 @@ export class GetAccumulatedDelayTimeController {
   ) {}
 
   async handle(request: FastifyRequest, reply: FastifyReply): Promise<void> {
+    const { page, perPage } = getAccumulatedDelayTimeQuerySchema.parse(request.query);
     const token = this.fastify.jwtAuth.getTokenByCookieOrHeader(request);
 
     if (!token) {
@@ -19,6 +26,8 @@ export class GetAccumulatedDelayTimeController {
       const requester = this.fastify.jwtAuth.verifyToken(token);
       const result = await this.getAccumulatedDelayTimeUseCase.execute({
         requesterId: requester.id as string,
+        page,
+        perPage,
       });
 
       if (result.isLeft()) {

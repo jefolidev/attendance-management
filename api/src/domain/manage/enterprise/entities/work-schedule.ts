@@ -11,6 +11,8 @@ dayjs.extend(timezone)
 interface WorkScheduleProps {
 	startTime: string
 	endTime: string
+	breakStartTime?: string | null
+	breakEndTime?: string | null
 
 	lateTolerance: number
 
@@ -48,6 +50,22 @@ export class WorkSchedule extends AggregateRoot<WorkScheduleProps> {
 
 	get endTime(): string {
 		return this.props.endTime
+	}
+
+	get breakStartTime(): string | null | undefined {
+		return this.props.breakStartTime
+	}
+
+	set breakStartTime(value: string | null | undefined) {
+		this.props.breakStartTime = value
+	}
+
+	get breakEndTime(): string | null | undefined {
+		return this.props.breakEndTime
+	}
+
+	set breakEndTime(value: string | null | undefined) {
+		this.props.breakEndTime = value
 	}
 
 	get employeeId(): UniqueEntityId {

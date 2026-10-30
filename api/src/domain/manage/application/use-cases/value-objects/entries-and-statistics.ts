@@ -7,7 +7,9 @@ import type {
 export interface EntriesAndStatisticsProps {
 	timeEntryStage: TimeEntryStage
 	occurredAt: Date
+	clockOut: Date | null
 	breaks: TimeEntryBreaks
+	totalBreakMinutes: number
 	entryMinutesEarly: number
 	entryMinutesLate: number
 	departureMinutesEarly: number
@@ -24,8 +26,16 @@ export class EntriesAndStatistics extends ValueObject<EntriesAndStatisticsProps>
 		return this.props.occurredAt
 	}
 
+	get clockOut() {
+		return this.props.clockOut
+	}
+
 	get breaks() {
 		return this.props.breaks
+	}
+
+	get totalBreakMinutes() {
+		return this.props.totalBreakMinutes
 	}
 
 	get entryMinutesEarly() {

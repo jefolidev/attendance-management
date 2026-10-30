@@ -6,6 +6,8 @@ export function presentWorkSchedule(workSchedule: WorkSchedule) {
     employeeId: workSchedule.employeeId.toString(),
     startTime: workSchedule.startTime,
     endTime: workSchedule.endTime,
+    breakStartTime: workSchedule.breakStartTime,
+    breakEndTime: workSchedule.breakEndTime,
     lateTolerance: workSchedule.lateTolerance,
     breaksPerDay: workSchedule.breaksPerDay,
     days: workSchedule.days,

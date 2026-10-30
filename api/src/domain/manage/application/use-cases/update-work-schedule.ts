@@ -6,6 +6,8 @@ import type { WorkScheduleRepository } from '../repositories/work-schedule.repos
 interface UpdateWorkScheduleUseCaseRequest {
 	startTime?: string
 	endTime?: string
+	breakStartTime?: string | null
+	breakEndTime?: string | null
 
 	lateTolerance?: number
 
@@ -28,6 +30,8 @@ export class UpdateWorkScheduleUseCase {
 		breaksPerDay,
 		days,
 		endTime,
+		breakStartTime,
+		breakEndTime,
 		lateTolerance,
 		startTime,
 	}: UpdateWorkScheduleUseCaseRequest): Promise<UpdateWorkScheduleUseCaseResponse> {
@@ -47,6 +51,10 @@ export class UpdateWorkScheduleUseCase {
 		workSchedule.breaksPerDay = breaksPerDay ?? workSchedule.breaksPerDay
 		workSchedule.days = days ?? workSchedule.days
 		workSchedule.endTime = endTime ?? workSchedule.endTime
+		workSchedule.breakStartTime =
+			breakStartTime !== undefined ? breakStartTime : workSchedule.breakStartTime
+		workSchedule.breakEndTime =
+			breakEndTime !== undefined ? breakEndTime : workSchedule.breakEndTime
 		workSchedule.lateTolerance = lateTolerance ?? workSchedule.lateTolerance
 		workSchedule.startTime = startTime ?? workSchedule.startTime
 

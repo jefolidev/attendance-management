@@ -13,12 +13,16 @@ export function presentEntriesAndStatistics(
   return {
     timeEntryStage: entry.timeEntryStage,
     occurredAt: dayjs(entry.occurredAt).tz(WORK_SCHEDULE_TIMEZONE).format(),
+    clockOut: entry.clockOut
+      ? dayjs(entry.clockOut).tz(WORK_SCHEDULE_TIMEZONE).format()
+      : null,
     breaks: entry.breaks.map((breakEntry) => ({
       start: dayjs(breakEntry.start).tz(WORK_SCHEDULE_TIMEZONE).format(),
       end: breakEntry.end
         ? dayjs(breakEntry.end).tz(WORK_SCHEDULE_TIMEZONE).format()
         : null,
     })),
+    totalBreakMinutes: entry.totalBreakMinutes,
     entryMinutesEarly: entry.entryMinutesEarly,
     entryMinutesLate: entry.entryMinutesLate,
     departureMinutesEarly: entry.departureMinutesEarly,

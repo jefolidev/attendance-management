@@ -108,6 +108,10 @@ export class ListEmployeeEntriesUseCase {
 					: 0
 
 				const totalWorkedTime = entry.calculateWorkedTimeWithoutBreaks()
+				const totalBreakTime = entry.breaks.reduce((total, breakEntry) => {
+					if (!breakEntry.end) return total
+					return total + breakEntry.end.getTime() - breakEntry.start.getTime()
+				}, 0)
 
 				const localDate = dayjs(entry.clockIn).tz(WORK_SCHEDULE_TIMEZONE)
 				const date = localDate.toDate()
@@ -115,7 +119,9 @@ export class ListEmployeeEntriesUseCase {
 				const entriesAndStatistics: EntriesAndStatisticsProps = {
 					timeEntryStage: entry.status,
 					occurredAt: date,
+					clockOut: entry.clockOut ?? null,
 					breaks: entry.breaks,
+					totalBreakMinutes: Math.floor(totalBreakTime / 60000),
 					entryMinutesEarly,
 					entryMinutesLate,
 					departureMinutesEarly,

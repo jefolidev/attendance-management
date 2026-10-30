@@ -12,6 +12,7 @@ import { TimeBalanceEntryRepository } from '../repositories/time-balance-entry.r
 import { TimeBalanceRepository } from '../repositories/time-balance.repository'
 import type { TimeEntryRepository } from '../repositories/time-entry.repository'
 import type { WorkScheduleRepository } from '../repositories/work-schedule.repository'
+import { calculateAutomaticTimeEntryBalance } from '../services/calculate-automatic-time-entry-balance'
 
 dayjs.extend(utc)
 dayjs.extend(timezone)
@@ -103,27 +104,35 @@ export class RegisterTimeOutEntryUseCase {
 			)
 		}
 
-		const endTime = workSchedule.endTimeToDate(clockOut)
-
-		if (workSchedule.isDepartedEarly(clockOut)) {
+		existingTimeEntry.clockOut = clockOut
+		const existingBalance = await this.timeBalanceRepository.findByEmployeeId(
+			requesterId,
+		)
+		const automaticEntries = calculateAutomaticTimeEntryBalance(
+			existingTimeEntry,
+			workSchedule,
+			existingBalance?.balanceMinutes ?? 0,
+			{ includeClockIn: false },
+		)
+		if (automaticEntries.length > 0) {
 			await this.ensureTimeBalance(requesterId)
-			await this.timeBalanceEntryRepository.addDebitEntry(
-				requesterId,
-				dayjs(endTime)
-					.tz(WORK_SCHEDULE_TIMEZONE)
-					.diff(dayjs(clockOut).tz(WORK_SCHEDULE_TIMEZONE), 'minute'),
-				'EARLY_DEPARTURE',
-			)
-		} else if (workSchedule.isDepartedLate(clockOut)) {
-			await this.creditExtraTime(
-				requesterId,
-				dayjs(clockOut)
-					.tz(WORK_SCHEDULE_TIMEZONE)
-					.diff(dayjs(endTime).tz(WORK_SCHEDULE_TIMEZONE), 'minute'),
-			)
+			for (const entry of automaticEntries) {
+				if (entry.type === 'CREDIT') {
+					await this.timeBalanceEntryRepository.addCreditEntry(
+						requesterId,
+						entry.durationInMinutes,
+						entry.reason,
+					)
+				} else {
+					await this.timeBalanceEntryRepository.addDebitEntry(
+						requesterId,
+						entry.durationInMinutes,
+						entry.reason,
+					)
+				}
+			}
 		}
 
-		existingTimeEntry.clockOut = clockOut
 		await this.timeEntryRepository.update(existingTimeEntry)
 
 		return right({ timeEntryId: existingTimeEntry.id.toString() })
@@ -144,19 +153,4 @@ export class RegisterTimeOutEntryUseCase {
 		return created
 	}
 
-	private async creditExtraTime(
-		employeeId: string,
-		minutes: number,
-	): Promise<void> {
-		if (minutes <= 0) return
-
-		const timeBalance = await this.ensureTimeBalance(employeeId)
-		const hasDebt = timeBalance.balanceMinutes < 0
-
-		await this.timeBalanceEntryRepository.addCreditEntry(
-			employeeId,
-			minutes,
-			hasDebt ? 'COMPENSATION' : 'EXTRA',
-		)
-	}
 }

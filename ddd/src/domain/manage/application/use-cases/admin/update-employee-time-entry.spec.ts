@@ -20,7 +20,7 @@ describe('Update Employee Time Entry', () => {
 		)
 	})
 
-	it('allows an admin to edit the start time and rejects closing an open entry', async () => {
+	it('allows an admin to edit the start time and close an open entry', async () => {
 		const admin = makeEmployee({ role: 'ADMIN' })
 		const employee = makeEmployee()
 		await employeeRepository.create(admin)
@@ -46,10 +46,12 @@ describe('Update Employee Time Entry', () => {
 		})
 
 		expect(updateResponse.isRight()).toBe(true)
-		expect(closeResponse.isLeft()).toBe(true)
-		expect(closeResponse.value).toBeInstanceOf(BadRequestError)
+		expect(closeResponse.isRight()).toBe(true)
 		expect(timeEntryRepository.items[0]?.clockIn).toEqual(
 			new Date('2026-01-02T12:15:00.000Z'),
+		)
+		expect(timeEntryRepository.items[0]?.clockOut).toEqual(
+			new Date('2026-01-02T20:00:00.000Z'),
 		)
 	})
 

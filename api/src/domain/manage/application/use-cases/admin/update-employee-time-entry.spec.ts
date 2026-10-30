@@ -47,7 +47,7 @@ describe('Update Employee Time Entry', () => {
 		expect(timeEntryRepository.items[0]?.clockOut).toBeUndefined()
 	})
 
-	it('allows editing the end time only after the entry is closed', async () => {
+	it('allows defining the end time of an open entry and editing a closed entry', async () => {
 		const admin = makeEmployee({ role: 'ADMIN' })
 		const employee = makeEmployee()
 		await employeeRepository.create(admin)
@@ -65,8 +65,10 @@ describe('Update Employee Time Entry', () => {
 			timeEntryId: openEntry.id.toString(),
 			clockOut: new Date('2026-01-02T20:00:00.000Z'),
 		})
-		expect(openResponse.isLeft()).toBe(true)
-		expect(openResponse.value).toBeInstanceOf(BadRequestError)
+		expect(openResponse.isRight()).toBe(true)
+		expect(timeEntryRepository.items[0]?.clockOut).toEqual(
+			new Date('2026-01-02T20:00:00.000Z'),
+		)
 
 		const closedEntry = makeTimeEntry({
 			employeeId: employee.id,

@@ -3,7 +3,11 @@ import { BadRequestError } from '@src/core/entities/errors/bad-request-error'
 import { NotAllowedError } from '@src/core/entities/errors/not-allowed-error'
 import { NotFoundError } from '@src/core/entities/errors/not-found-error'
 import type { EmployeeRepository } from '../../repositories/employee.repository'
+import type { TimeBalanceEntryRepository } from '../../repositories/time-balance-entry.repository'
+import type { TimeBalanceRepository } from '../../repositories/time-balance.repository'
 import type { TimeEntryRepository } from '../../repositories/time-entry.repository'
+import type { WorkScheduleRepository } from '../../repositories/work-schedule.repository'
+import { RecalculateEmployeeTimeBalanceUseCase } from './recalculate-employee-time-balance'
 import { ensureAdminAndTarget } from './ensure-admin'
 
 interface UpdateEmployeeTimeEntryUseCaseRequest {
@@ -20,10 +24,25 @@ type UpdateEmployeeTimeEntryUseCaseResponse = Either<
 >
 
 export class UpdateEmployeeTimeEntryUseCase {
+	private readonly recalculateEmployeeTimeBalance?: RecalculateEmployeeTimeBalanceUseCase
+
 	constructor(
 		private readonly employeeRepository: EmployeeRepository,
 		private readonly timeEntryRepository: TimeEntryRepository,
-	) {}
+		workScheduleRepository?: WorkScheduleRepository,
+		timeBalanceRepository?: TimeBalanceRepository,
+		timeBalanceEntryRepository?: TimeBalanceEntryRepository,
+	) {
+		if (workScheduleRepository && timeBalanceRepository && timeBalanceEntryRepository) {
+			this.recalculateEmployeeTimeBalance = new RecalculateEmployeeTimeBalanceUseCase(
+				employeeRepository,
+				workScheduleRepository,
+				timeEntryRepository,
+				timeBalanceRepository,
+				timeBalanceEntryRepository,
+			)
+		}
+	}
 
 	async execute({
 		requesterId,
@@ -50,12 +69,6 @@ export class UpdateEmployeeTimeEntryUseCase {
 			return left(new NotFoundError('Time entry not found'))
 		}
 
-		if (clockOut !== undefined && timeEntry.clockOut === undefined) {
-			return left(
-				new BadRequestError('Cannot edit clock-out before the day is closed'),
-			)
-		}
-
 		const nextClockIn = clockIn ?? timeEntry.clockIn
 		const nextClockOut = clockOut ?? timeEntry.clockOut
 
@@ -69,6 +82,7 @@ export class UpdateEmployeeTimeEntryUseCase {
 		if (clockOut !== undefined) timeEntry.clockOut = clockOut
 
 		await this.timeEntryRepository.update(timeEntry)
+		await this.recalculateEmployeeTimeBalance?.execute({ employeeId })
 
 		return right(undefined)
 	}

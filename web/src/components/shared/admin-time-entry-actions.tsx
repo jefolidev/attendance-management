@@ -40,6 +40,9 @@ export function AdminTimeEntryActions({ employeeId, entry }: { employeeId: strin
         queryClient.invalidateQueries({ queryKey: ['admin-records', employeeId] }),
         queryClient.invalidateQueries({ queryKey: ['admin-user-entries', employeeId] }),
         queryClient.invalidateQueries({ queryKey: ['admin-user-delays', employeeId] }),
+        queryClient.invalidateQueries({ queryKey: ['admin-user-balance', employeeId] }),
+        queryClient.invalidateQueries({ queryKey: ['time-balance'] }),
+        queryClient.invalidateQueries({ queryKey: ['balance-events'] }),
       ])
       setEditing(null)
       toast.success('Horário da batida atualizado.')
@@ -49,8 +52,7 @@ export function AdminTimeEntryActions({ employeeId, entry }: { employeeId: strin
 
   const openEditor = (field: EditableTime) => {
     const currentValue = field === 'clockIn' ? entry.occurredAt : entry.clockOut
-    if (!currentValue) return
-    setTime(formatTimeInput(currentValue))
+    setTime(currentValue ? formatTimeInput(currentValue) : '')
     setEditing(field)
   }
 
@@ -67,9 +69,9 @@ export function AdminTimeEntryActions({ employeeId, entry }: { employeeId: strin
             <LogIn className="size-4" />
             Editar horário de início
           </DropdownMenuItem>
-          <DropdownMenuItem disabled={!entry.clockOut} onSelect={() => openEditor('clockOut')}>
+          <DropdownMenuItem onSelect={() => openEditor('clockOut')}>
             <LogOut className="size-4" />
-            Editar horário de final
+            {entry.clockOut ? 'Editar horário de final' : 'Definir horário de saída'}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -77,8 +79,8 @@ export function AdminTimeEntryActions({ employeeId, entry }: { employeeId: strin
       <Dialog open={Boolean(editing)} onOpenChange={(open) => !open && setEditing(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{editing === 'clockIn' ? 'Editar horário de início' : 'Editar horário de final'}</DialogTitle>
-            <DialogDescription>Informe o novo horário desta batida. A data do registro será preservada.</DialogDescription>
+            <DialogTitle>{editing === 'clockIn' ? 'Editar horário de início' : entry.clockOut ? 'Editar horário de final' : 'Definir horário de saída'}</DialogTitle>
+            <DialogDescription>Informe o horário da batida. A data do registro será preservada e os cálculos serão atualizados.</DialogDescription>
           </DialogHeader>
           <form onSubmit={(event) => {
             event.preventDefault()

@@ -12,6 +12,20 @@ export type TimeBalanceEntryReason =
 	| 'EXTRA'
 	| 'MANUAL_ADJUSTMENT'
 
+export const AUTOMATIC_TIME_BALANCE_ENTRY_REASONS = [
+	'LATE_ARRIVAL',
+	'EARLY_DEPARTURE',
+	'OVERTIME',
+	'COMPENSATION',
+	'EXTRA',
+] as const satisfies readonly TimeBalanceEntryReason[]
+
+export function isAutomaticTimeBalanceEntryReason(
+	reason: TimeBalanceEntryReason,
+): boolean {
+	return AUTOMATIC_TIME_BALANCE_ENTRY_REASONS.includes(reason as never)
+}
+
 export interface TimeBalanceEntryProps {
 	employeeId: UniqueEntityId
 	timeBalanceId: UniqueEntityId

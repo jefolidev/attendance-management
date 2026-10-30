@@ -2,10 +2,6 @@ import { type Either, left, right } from '@src/core/either'
 import { BadRequestError } from '@src/core/entities/errors/bad-request-error'
 import { NotFoundError } from '@src/core/entities/errors/not-found-error'
 import { UniqueEntityId } from '@src/core/entities/unique-entity-id'
-import { WORK_SCHEDULE_TIMEZONE } from '@src/core/time/work-schedule-timezone'
-import dayjs from 'dayjs'
-import timezone from 'dayjs/plugin/timezone'
-import utc from 'dayjs/plugin/utc'
 import { TimeBalance } from '../../enterprise/entities/time-balance'
 import { TimeEntry, TimeEntryStage } from '../../enterprise/entities/time-entry'
 import type { EmployeeRepository } from '../repositories/employee.repository'
@@ -13,9 +9,7 @@ import type { TimeBalanceEntryRepository } from '../repositories/time-balance-en
 import type { TimeBalanceRepository } from '../repositories/time-balance.repository'
 import type { TimeEntryRepository } from '../repositories/time-entry.repository'
 import type { WorkScheduleRepository } from '../repositories/work-schedule.repository'
-
-dayjs.extend(utc)
-dayjs.extend(timezone)
+import { calculateAutomaticTimeEntryBalance } from '../services/calculate-automatic-time-entry-balance'
 
 interface RegisterTimeInEntryUseCaseRequest {
 	clockIn: Date
@@ -78,29 +72,38 @@ export class RegisterTimeInEntryUseCase {
 			employeeId: requester.id,
 		})
 
-		const clockInAt = dayjs(clockIn).tz(WORK_SCHEDULE_TIMEZONE)
-		const startTime = dayjs(
-			workSchedule.startTimeToDate(clockIn),
-		).tz(WORK_SCHEDULE_TIMEZONE)
-
 		let timeEntryCreated = false
 
 		try {
 			await this.timeEntryRepository.create(timeEntry)
 			timeEntryCreated = true
 
-			if (workSchedule.isLateWithTolerance(clockIn)) {
-				const minutesLate = clockInAt.diff(startTime, 'minute')
-
+			const existingBalance = await this.timeBalanceRepository.findByEmployeeId(
+				requesterId,
+			)
+			const automaticEntries = calculateAutomaticTimeEntryBalance(
+				timeEntry,
+				workSchedule,
+				existingBalance?.balanceMinutes ?? 0,
+				{ includeClockOut: false },
+			)
+			if (automaticEntries.length > 0) {
 				await this.ensureTimeBalance(requesterId)
-				await this.timeBalanceEntryRepository.addDebitEntry(
-					requesterId,
-					minutesLate,
-					'LATE_ARRIVAL',
-				)
-			} else if (workSchedule.isEarly(clockIn)) {
-				const minutesEarly = startTime.diff(clockInAt, 'minute')
-				await this.creditExtraTime(requesterId, minutesEarly)
+				for (const entry of automaticEntries) {
+					if (entry.type === 'CREDIT') {
+						await this.timeBalanceEntryRepository.addCreditEntry(
+							requesterId,
+							entry.durationInMinutes,
+							entry.reason,
+						)
+					} else {
+						await this.timeBalanceEntryRepository.addDebitEntry(
+							requesterId,
+							entry.durationInMinutes,
+							entry.reason,
+						)
+					}
+				}
 			}
 		} catch (error) {
 			if (timeEntryCreated) {
@@ -128,19 +131,4 @@ export class RegisterTimeInEntryUseCase {
 		return created
 	}
 
-	private async creditExtraTime(
-		employeeId: string,
-		minutes: number,
-	): Promise<void> {
-		if (minutes <= 0) return
-
-		const timeBalance = await this.ensureTimeBalance(employeeId)
-		const hasDebt = timeBalance.balanceMinutes < 0
-
-		await this.timeBalanceEntryRepository.addCreditEntry(
-			employeeId,
-			minutes,
-			hasDebt ? 'COMPENSATION' : 'EXTRA',
-		)
-	}
 }

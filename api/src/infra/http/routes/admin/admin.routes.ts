@@ -12,6 +12,7 @@ import { UpdateEmployeeTimeEntryUseCase } from '@src/domain/manage/application/u
 import { BcryptHasher } from '@src/infra/cryptography/bcrypt-hasher'
 import { PrismaEmployeeRepository } from '@src/infra/database/prisma/repositories/prisma-employee.repository'
 import { PrismaTimeBalanceRepository } from '@src/infra/database/prisma/repositories/prisma-time-balance.repository'
+import { PrismaTimeBalanceEntryRepository } from '@src/infra/database/prisma/repositories/prisma-time-balance-entry.repository'
 import { PrismaTimeEntryRepository } from '@src/infra/database/prisma/repositories/prisma-time-entry.repository'
 import { PrismaWorkScheduleRepository } from '@src/infra/database/prisma/repositories/prisma-work-schedule.repository'
 import { adminRouteConfig } from '@src/infra/plugins/auth-guard'
@@ -90,7 +91,13 @@ export default async function adminRoutes(fastify: FastifyInstance): Promise<voi
 			),
 		)
 	const updateEmployeeTimeEntryController = new UpdateEmployeeTimeEntryController(
-		new UpdateEmployeeTimeEntryUseCase(employeeRepository, timeEntryRepository),
+		new UpdateEmployeeTimeEntryUseCase(
+			employeeRepository,
+			timeEntryRepository,
+			workScheduleRepository,
+			timeBalanceRepository,
+			new PrismaTimeBalanceEntryRepository(fastify.prisma),
+		),
 	)
 
 	const route = fastify.withTypeProvider<ZodTypeProvider>()

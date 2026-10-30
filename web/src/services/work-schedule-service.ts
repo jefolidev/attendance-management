@@ -17,6 +17,6 @@ export async function getWorkSchedule() {
   return data
 }
 
-export async function updateWorkSchedule(payload: Partial<Pick<WorkSchedule, 'startTime' | 'endTime' | 'breakStartTime' | 'breakEndTime'>>) {
+export async function updateWorkSchedule(payload: Partial<Pick<WorkSchedule, 'startTime' | 'endTime' | 'lateTolerance' | 'breaksPerDay'>>) {
   await api.patch('/employees/work-schedule', payload)
 }

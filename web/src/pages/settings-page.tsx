@@ -22,6 +22,8 @@ const timePattern = /^\d{2}:\d{2}$/
 const workScheduleSchema = z.object({
   startTime: z.string().regex(timePattern, 'Informe um horário válido.'),
   endTime: z.string().regex(timePattern, 'Informe um horário válido.'),
+  breaksPerDay: z.number().int('Informe um número inteiro.').min(0, 'Informe zero ou mais pausas.'),
+  lateTolerance: z.number().int('Informe um número inteiro.').min(0, 'Informe zero ou mais minutos.'),
 })
 
 type WorkScheduleForm = z.infer<typeof workScheduleSchema>
@@ -32,7 +34,7 @@ export function SettingsPage() {
   const scheduleQuery = useQuery({ queryKey: ['work-schedule'], queryFn: getWorkSchedule })
   const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<WorkScheduleForm>({
     resolver: zodResolver(workScheduleSchema),
-    defaultValues: { startTime: '', endTime: '' },
+    defaultValues: { startTime: '', endTime: '', breaksPerDay: 0, lateTolerance: 0 },
   })
 
   useEffect(() => {
@@ -40,6 +42,8 @@ export function SettingsPage() {
     reset({
       startTime: scheduleQuery.data.startTime,
       endTime: scheduleQuery.data.endTime,
+      breaksPerDay: scheduleQuery.data.breaksPerDay,
+      lateTolerance: scheduleQuery.data.lateTolerance,
     })
   }, [reset, scheduleQuery.data])
 
@@ -48,6 +52,8 @@ export function SettingsPage() {
       await updateWorkSchedule({
         startTime: values.startTime,
         endTime: values.endTime,
+        breaksPerDay: values.breaksPerDay,
+        lateTolerance: values.lateTolerance,
       })
       await queryClient.invalidateQueries({ queryKey: ['work-schedule'] })
       toast.success('Horário de trabalho atualizado.')
@@ -69,6 +75,8 @@ export function SettingsPage() {
             <form className="grid gap-5 sm:grid-cols-2" onSubmit={handleSubmit(onSubmit)}>
               <TimeField id="start-time" label="Horário de entrada" error={errors.startTime?.message} {...register('startTime')} />
               <TimeField id="end-time" label="Horário de saída" error={errors.endTime?.message} {...register('endTime')} />
+              <NumberField id="breaks-per-day" label="Quantidade de pausas" hint="por dia" error={errors.breaksPerDay?.message} {...register('breaksPerDay', { valueAsNumber: true })} />
+              <NumberField id="late-tolerance" label="Tolerância de atraso" hint="em minutos" error={errors.lateTolerance?.message} {...register('lateTolerance', { valueAsNumber: true })} />
               <div className="flex justify-end sm:col-span-2">
                 <Button type="submit" className="gap-2" disabled={isSubmitting}><Save className="size-4" />{isSubmitting ? 'Salvando…' : 'Salvar alterações'}</Button>
               </div>
@@ -103,6 +111,18 @@ function TimeField({ id, label, hint, error, ...props }: TimeFieldProps) {
     <div className="space-y-2">
       <Label htmlFor={id}>{label}{hint && <span className="ml-1 text-muted-foreground">({hint})</span>}</Label>
       <Input id={id} type="time" aria-invalid={Boolean(error)} {...props} />
+      {error && <p className="text-xs text-destructive">{error}</p>}
+    </div>
+  )
+}
+
+type NumberFieldProps = ComponentProps<typeof Input> & { label: string; hint?: string; error?: string }
+
+function NumberField({ id, label, hint, error, ...props }: NumberFieldProps) {
+  return (
+    <div className="space-y-2">
+      <Label htmlFor={id}>{label}{hint && <span className="ml-1 text-muted-foreground">({hint})</span>}</Label>
+      <Input id={id} type="number" min={0} step={1} aria-invalid={Boolean(error)} {...props} />
       {error && <p className="text-xs text-destructive">{error}</p>}
     </div>
   )

@@ -1,0 +1,75 @@
+import { left, right, type Either } from '@src/core/either'
+import { BadRequestError } from '@src/core/entities/errors/bad-request-error'
+import { NotAllowedError } from '@src/core/entities/errors/not-allowed-error'
+import { NotFoundError } from '@src/core/entities/errors/not-found-error'
+import type { EmployeeRepository } from '../../repositories/employee.repository'
+import type { TimeEntryRepository } from '../../repositories/time-entry.repository'
+import type { WorkScheduleRepository } from '../../repositories/work-schedule.repository'
+import type { ListEmployeeEntriesUseCase } from '../list-employee-entries'
+import { ListEmployeeEntriesUseCase as ListEmployeeEntries } from '../list-employee-entries'
+import { ensureAdminAndTarget } from './ensure-admin'
+
+interface GetEmployeeEntriesUseCaseRequest {
+	requesterId: string
+	employeeId: string
+	page?: number
+	perPage?: number
+	sort?: 'asc' | 'desc'
+}
+
+export class GetEmployeeEntriesUseCase {
+	private readonly listEmployeeEntriesUseCase: ListEmployeeEntriesUseCase
+
+	constructor(
+		private readonly employeeRepository: EmployeeRepository,
+		workScheduleRepository: WorkScheduleRepository,
+		timeEntryRepository: TimeEntryRepository,
+	) {
+		this.listEmployeeEntriesUseCase = new ListEmployeeEntries(
+			employeeRepository,
+			workScheduleRepository,
+			timeEntryRepository,
+		)
+	}
+
+	async execute({
+		requesterId,
+		employeeId,
+		page,
+		perPage,
+		sort,
+	}: GetEmployeeEntriesUseCaseRequest): Promise<
+		Either<
+			NotAllowedError | NotFoundError | BadRequestError,
+			Awaited<ReturnType<ListEmployeeEntriesUseCase['execute']>> extends Either<
+				unknown,
+				infer Value
+			>
+				? Value
+				: never
+		>
+	> {
+		const authorization = await ensureAdminAndTarget(
+			this.employeeRepository,
+			requesterId,
+			employeeId,
+		)
+
+		if (authorization.isLeft()) {
+			return left(authorization.value)
+		}
+
+		const result = await this.listEmployeeEntriesUseCase.execute({
+			requesterId: employeeId,
+			page,
+			perPage,
+			sort,
+		})
+
+		if (result.isLeft()) {
+			return left(new NotFoundError('Employee entries not found'))
+		}
+
+		return right(result.value)
+	}
+}

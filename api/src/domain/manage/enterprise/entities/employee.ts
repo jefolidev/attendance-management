@@ -41,6 +41,11 @@ export class Employee extends AggregateRoot<EmployeeProps> {
     return this.props.role === "EMPLOYEE"
   }
 
+  changePassword(password: string): void {
+    this.props.password = password
+    this.props.updatedAt = new Date()
+  }
+
   static create(props: Optional<EmployeeProps, "createdAt">, id?: UniqueEntityId): Employee {
     const employee = new Employee({
       ...props,

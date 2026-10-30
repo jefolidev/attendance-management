@@ -4,7 +4,6 @@ import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { useAuth } from '@/features/auth/use-auth'
-import { ThemeToggle } from './theme-toggle'
 
 const userItems = [
   { to: '/', label: 'Hoje', icon: House },
@@ -35,7 +34,6 @@ export function Sidebar({ onNavigate, admin = false }: { onNavigate?: () => void
           </span>
           <span className="text-sm font-semibold tracking-tight">{admin ? 'Ponto digital · Admin' : 'Ponto digital'}</span>
         </NavLink>
-        <div className="lg:hidden"><ThemeToggle /></div>
       </div>
 
       <Separator className="my-6" />
@@ -68,16 +66,10 @@ export function Sidebar({ onNavigate, admin = false }: { onNavigate?: () => void
         </NavLink>
       )}
 
-      <div className="mt-auto space-y-3">
-        <Button variant="ghost" className="w-full justify-start gap-3 px-3 py-2.5 text-sm text-muted-foreground hover:text-foreground" onClick={() => void logout()}>
+      <div className="mt-auto flex justify-end">
+        <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground" onClick={() => void logout()} aria-label="Sair" title="Sair">
           <LogOut className="size-4" />
-          Sair
         </Button>
-
-        <div className="hidden items-center justify-between px-2 lg:flex">
-          <span className="text-xs text-muted-foreground">Preferências</span>
-          <ThemeToggle />
-        </div>
       </div>
     </aside>
   )

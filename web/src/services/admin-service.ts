@@ -45,7 +45,7 @@ export async function getAdminEmployeeEntries(employeeId: string, page = 1, perP
 }
 
 export async function getAdminEmployeeBalance(employeeId: string) {
-  const { data } = await api.get<BalanceResponse>(`/admin/employees/${employeeId}/time-balance`)
+  const { data } = await api.get<BalanceResponse | { balance: null }>(`/admin/employees/${employeeId}/time-balance`)
   return data
 }
 
@@ -57,7 +57,7 @@ export async function getAdminEmployeeDelays(employeeId: string, page = 1, perPa
 }
 
 export async function getAdminEmployeeWorkSchedule(employeeId: string) {
-  const { data } = await api.get<WorkSchedule>(`/admin/employees/${employeeId}/work-schedule`)
+  const { data } = await api.get<WorkSchedule | null>(`/admin/employees/${employeeId}/work-schedule`)
   return data
 }
 

@@ -67,7 +67,7 @@ function TimeField({ id, label, hint, error, ...props }: TimeFieldProps) {
   return (
     <div className="space-y-2">
       <Label htmlFor={id}>{label}{hint && <span className="ml-1 text-muted-foreground">({hint})</span>}</Label>
-      <Input id={id} type="time" lang="pt-BR" step={60} aria-invalid={Boolean(error)} {...props} />
+      <Input id={id} type="text" inputMode="numeric" placeholder="HH:mm" maxLength={5} pattern="[0-9]{2}:[0-9]{2}" aria-invalid={Boolean(error)} {...props} />
       {error && <p className="text-xs text-destructive">{error}</p>}
     </div>
   )

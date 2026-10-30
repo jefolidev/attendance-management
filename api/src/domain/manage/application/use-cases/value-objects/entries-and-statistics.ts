@@ -5,6 +5,7 @@ import type {
 } from '@src/domain/manage/enterprise/entities/time-entry'
 
 export interface EntriesAndStatisticsProps {
+	timeEntryId: string
 	timeEntryStage: TimeEntryStage
 	occurredAt: Date
 	clockOut: Date | null

@@ -1,0 +1,106 @@
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { LogIn, LogOut, MoreHorizontal } from 'lucide-react'
+import { useState } from 'react'
+import { Button } from '@/components/ui/button'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { formatTime, getErrorMessage } from '@/lib/formatters'
+import { updateAdminEmployeeTimeEntry } from '@/services/admin-service'
+import type { DayEntry } from '@/services/timeclock-service'
+import { toast } from 'sonner'
+
+type EditableTime = 'clockIn' | 'clockOut'
+
+export function AdminTimeEntryActions({ employeeId, entry }: { employeeId: string; entry: DayEntry }) {
+  const queryClient = useQueryClient()
+  const [editing, setEditing] = useState<EditableTime | null>(null)
+  const [time, setTime] = useState('')
+  const updateMutation = useMutation({
+    mutationFn: () => updateAdminEmployeeTimeEntry(employeeId, entry.timeEntryId, {
+      [editing ?? 'clockIn']: toServerTimestamp(entry.occurredAt, time),
+    }),
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['admin-dashboard-entries', employeeId] }),
+        queryClient.invalidateQueries({ queryKey: ['admin-dashboard-delays', employeeId] }),
+        queryClient.invalidateQueries({ queryKey: ['admin-records', employeeId] }),
+        queryClient.invalidateQueries({ queryKey: ['admin-user-entries', employeeId] }),
+        queryClient.invalidateQueries({ queryKey: ['admin-user-delays', employeeId] }),
+      ])
+      setEditing(null)
+      toast.success('Horário da batida atualizado.')
+    },
+    onError: (error) => toast.error(getErrorMessage(error)),
+  })
+
+  const openEditor = (field: EditableTime) => {
+    const currentValue = field === 'clockIn' ? entry.occurredAt : entry.clockOut
+    if (!currentValue) return
+    setTime(formatTimeInput(currentValue))
+    setEditing(field)
+  }
+
+  return (
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" size="icon" aria-label="Ações da batida">
+            <MoreHorizontal className="size-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem onSelect={() => openEditor('clockIn')}>
+            <LogIn className="size-4" />
+            Editar horário de início
+          </DropdownMenuItem>
+          <DropdownMenuItem disabled={!entry.clockOut} onSelect={() => openEditor('clockOut')}>
+            <LogOut className="size-4" />
+            Editar horário de final
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      <Dialog open={Boolean(editing)} onOpenChange={(open) => !open && setEditing(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{editing === 'clockIn' ? 'Editar horário de início' : 'Editar horário de final'}</DialogTitle>
+            <DialogDescription>Informe o novo horário desta batida. A data do registro será preservada.</DialogDescription>
+          </DialogHeader>
+          <form onSubmit={(event) => { event.preventDefault(); updateMutation.mutate() }}>
+            <div className="space-y-2">
+              <Label htmlFor="admin-entry-time">Horário</Label>
+              <Input id="admin-entry-time" type="time" required value={time} onChange={(event) => setTime(event.target.value)} />
+            </div>
+            <DialogFooter className="mt-6">
+              <Button type="button" variant="outline" onClick={() => setEditing(null)}>Cancelar</Button>
+              <Button type="submit" disabled={updateMutation.isPending}>{updateMutation.isPending ? 'Salvando…' : 'Salvar horário'}</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+    </>
+  )
+}
+
+function formatTimeInput(value: string) {
+  return formatTime(value)
+}
+
+function toServerTimestamp(dateTime: string, time: string) {
+  const date = dateTime.slice(0, 10)
+  return new Date(`${date}T${time}:00-03:00`).toISOString()
+}

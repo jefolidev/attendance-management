@@ -8,6 +8,7 @@ import { GetEmployeeWorkScheduleUseCase } from '@src/domain/manage/application/u
 import { ListEmployeesUseCase } from '@src/domain/manage/application/use-cases/admin/list-employees'
 import { UpdateEmployeePasswordUseCase } from '@src/domain/manage/application/use-cases/admin/update-employee-password'
 import { UpdateEmployeeWorkScheduleUseCase } from '@src/domain/manage/application/use-cases/admin/update-employee-work-schedule'
+import { UpdateEmployeeTimeEntryUseCase } from '@src/domain/manage/application/use-cases/admin/update-employee-time-entry'
 import { BcryptHasher } from '@src/infra/cryptography/bcrypt-hasher'
 import { PrismaEmployeeRepository } from '@src/infra/database/prisma/repositories/prisma-employee.repository'
 import { PrismaTimeBalanceRepository } from '@src/infra/database/prisma/repositories/prisma-time-balance.repository'
@@ -39,6 +40,11 @@ import {
 	UpdateEmployeeWorkScheduleController,
 	updateEmployeeWorkScheduleBodySchema,
 } from '../../controllers/update-employee-work-schedule.controller'
+import {
+	UpdateEmployeeTimeEntryController,
+	updateEmployeeTimeEntryBodySchema,
+	updateEmployeeTimeEntryParamsSchema,
+} from '../../controllers/update-employee-time-entry.controller'
 
 export default async function adminRoutes(fastify: FastifyInstance): Promise<void> {
 	const employeeRepository = new PrismaEmployeeRepository(fastify.prisma)
@@ -83,6 +89,9 @@ export default async function adminRoutes(fastify: FastifyInstance): Promise<voi
 				workScheduleRepository,
 			),
 		)
+	const updateEmployeeTimeEntryController = new UpdateEmployeeTimeEntryController(
+		new UpdateEmployeeTimeEntryUseCase(employeeRepository, timeEntryRepository),
+	)
 
 	const route = fastify.withTypeProvider<ZodTypeProvider>()
 
@@ -181,6 +190,20 @@ export default async function adminRoutes(fastify: FastifyInstance): Promise<voi
 		},
 		handler: updateEmployeeWorkScheduleController.handle.bind(
 			updateEmployeeWorkScheduleController,
+		),
+	})
+
+	route.route({
+		method: 'PATCH',
+		url: '/admin/employees/:employeeId/time-entries/:timeEntryId',
+		config: adminRouteConfig,
+		schema: {
+			params: updateEmployeeTimeEntryParamsSchema,
+			body: updateEmployeeTimeEntryBodySchema,
+			tags: ['admin', 'time-entries'],
+		},
+		handler: updateEmployeeTimeEntryController.handle.bind(
+			updateEmployeeTimeEntryController,
 		),
 	})
 }

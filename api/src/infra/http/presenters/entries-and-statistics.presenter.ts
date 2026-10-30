@@ -11,6 +11,7 @@ export function presentEntriesAndStatistics(
   entry: EntriesAndStatisticsProps,
 ) {
   return {
+		timeEntryId: entry.timeEntryId,
     timeEntryStage: entry.timeEntryStage,
     occurredAt: dayjs(entry.occurredAt).tz(WORK_SCHEDULE_TIMEZONE).format(),
     clockOut: entry.clockOut

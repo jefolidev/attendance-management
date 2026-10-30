@@ -28,6 +28,11 @@ export class TimeEntry extends AggregateRoot<TimeEntryProps> {
 		return this.props.clockIn
 	}
 
+	set clockIn(clockIn: Date) {
+		this.props.clockIn = clockIn
+		this.props.updatedAt = new Date()
+	}
+
 	get clockOut(): Date | undefined {
 		return this.props.clockOut
 	}

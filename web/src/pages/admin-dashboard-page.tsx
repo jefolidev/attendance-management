@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { EmptyState } from '@/components/shared/empty-state'
 import { LoadingState } from '@/components/shared/loading-state'
 import { PageHeader } from '@/components/shared/page-header'
+import { AdminTimeEntryActions } from '@/components/shared/admin-time-entry-actions'
 import { useAuth } from '@/features/auth/use-auth'
 import { formatDateTime, formatDuration } from '@/lib/formatters'
 import { getAdminEmployeeDelays, getAdminEmployeeEntries, getAdminEmployees } from '@/services/admin-service'
@@ -39,7 +40,7 @@ export function AdminDashboardPage() {
             {entriesQuery.isLoading && <LoadingState rows={5} />}
             {entriesQuery.isError && <EmptyState title="Registros indisponíveis" description="Não foi possível carregar os registros deste perfil." />}
             {!entriesQuery.isLoading && !entriesQuery.isError && recentEntries.length === 0 && <EmptyState title="Nenhum registro recente" description="Este perfil ainda não possui registros consolidados." />}
-            {!entriesQuery.isLoading && !entriesQuery.isError && recentEntries.length > 0 && <div className="divide-y">{recentEntries.map(({ date, entry }) => <div key={date} className="flex items-center justify-between gap-4 py-4"><div><p className="font-medium capitalize">{date}</p><p className="text-sm text-muted-foreground">Entrada às {formatDateTime(entry.occurredAt)}</p></div><p className="text-sm font-medium tabular-nums">{entry.clockOut ? `Saída às ${formatDateTime(entry.clockOut)}` : 'Jornada aberta'}</p></div>)}</div>}
+            {!entriesQuery.isLoading && !entriesQuery.isError && recentEntries.length > 0 && <div className="divide-y">{recentEntries.map(({ date, entry }) => <div key={entry.timeEntryId} className="flex items-center justify-between gap-4 py-4"><div><p className="font-medium capitalize">{date}</p><p className="text-sm text-muted-foreground">Entrada às {formatDateTime(entry.occurredAt)}</p></div><div className="flex items-center gap-2"><p className="text-right text-sm font-medium tabular-nums">{entry.clockOut ? `Saída às ${formatDateTime(entry.clockOut)}` : 'Jornada aberta'}</p><AdminTimeEntryActions employeeId={impersonatedUser.id} entry={entry} /></div></div>)}</div>}
           </CardContent>
         </Card>
       )}

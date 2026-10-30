@@ -124,6 +124,7 @@ export class ListEmployeeEntriesUseCase {
 				const date = localDate.toDate()
 
 				const entriesAndStatistics: EntriesAndStatisticsProps = {
+					timeEntryId: entry.id.toString(),
 					timeEntryStage: entry.status,
 					occurredAt: date,
 					clockOut: entry.clockOut ?? null,

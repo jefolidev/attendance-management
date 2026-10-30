@@ -67,4 +67,8 @@ export async function updateAdminEmployeeWorkSchedule(employeeId: string, payloa
   await api.patch(`/admin/employees/${employeeId}/work-schedule`, payload)
 }
 
+export async function updateAdminEmployeeTimeEntry(employeeId: string, timeEntryId: string, payload: { clockIn?: string; clockOut?: string }) {
+  await api.patch(`/admin/employees/${employeeId}/time-entries/${timeEntryId}`, payload)
+}
+
 export type AdminEntry = DayEntry

@@ -9,6 +9,7 @@ export interface TimeEntryBreak {
 }
 
 export interface DayEntry {
+  timeEntryId: string
   timeEntryStage: TimeEntryStage
   occurredAt: string
   clockOut: string | null

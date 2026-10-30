@@ -91,6 +91,7 @@ export class ListEmployeeEntriesUseCase {
 				const date = new Date(entry.clockIn)
 
 				const entriesAndStatistics: EntriesAndStatisticsProps = {
+					timeEntryId: entry.id.toString(),
 					timeEntryStage: entry.status,
 					occurredAt: date,
 					entryMinutesEarly,

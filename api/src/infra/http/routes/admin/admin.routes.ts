@@ -17,28 +17,28 @@ import { adminRouteConfig } from '@src/infra/plugins/auth-guard'
 import {
 	CreateEmployeeController,
 	adminCreateEmployeeBodySchema,
-} from '../../controllers/admin/create-employee.controller'
-import { GetEmployeeBalanceController } from '../../controllers/admin/get-employee-balance.controller'
+} from '../../controllers/employees/admin/create-employee.controller'
+import { GetEmployeeBalanceController } from '../../controllers/employees/admin/get-employee-balance.controller'
 import {
 	GetEmployeeDelaysController,
 	adminListDelaysQuerySchema,
-} from '../../controllers/admin/get-employee-delays.controller'
+} from '../../controllers/employees/admin/get-employee-delays.controller'
 import {
 	GetEmployeeEntriesController,
 	adminListEntriesQuerySchema,
-} from '../../controllers/admin/get-employee-entries.controller'
-import { ListEmployeesController } from '../../controllers/admin/list-employees.controller'
-import { adminListEmployeesQuerySchema } from '../../controllers/admin/list-employees.controller'
-import { GetEmployeeWorkScheduleController } from '../../controllers/admin/get-employee-work-schedule.controller'
+} from '../../controllers/employees/admin/get-employee-entries.controller'
+import { ListEmployeesController } from '../../controllers/employees/admin/list-employees.controller'
+import { adminListEmployeesQuerySchema } from '../../controllers/employees/admin/list-employees.controller'
+import { GetEmployeeWorkScheduleController } from '../../controllers/employees/admin/get-employee-work-schedule.controller'
 import {
 	UpdateEmployeePasswordController,
 	employeeIdParamsSchema,
 	updateEmployeePasswordBodySchema,
-} from '../../controllers/admin/update-employee-password.controller'
+} from '../../controllers/employees/admin/update-employee-password.controller'
 import {
 	UpdateEmployeeWorkScheduleController,
 	updateEmployeeWorkScheduleBodySchema,
-} from '../../controllers/admin/update-employee-work-schedule.controller'
+} from '../../controllers/employees/admin/update-employee-work-schedule.controller'
 
 export default async function adminRoutes(fastify: FastifyInstance): Promise<void> {
 	const employeeRepository = new PrismaEmployeeRepository(fastify.prisma)

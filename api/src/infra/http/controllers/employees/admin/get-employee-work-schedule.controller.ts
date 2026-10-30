@@ -1,6 +1,6 @@
 import type { GetEmployeeWorkScheduleUseCase } from '@src/domain/manage/application/use-cases/admin/get-employee-work-schedule'
 import type { FastifyReply, FastifyRequest } from 'fastify'
-import { presentWorkSchedule } from '../../presenters/work-schedule.presenter'
+import { presentWorkSchedule } from '../../../presenters/work-schedule.presenter'
 import { sendAdminError } from './admin-error-response'
 import { employeeIdParamsSchema } from './update-employee-password.controller'
 

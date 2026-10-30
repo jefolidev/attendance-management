@@ -1,7 +1,9 @@
-import { ArrowLeft, ChartNoAxesColumnIncreasing, ClipboardList, Clock3, History, House, Settings, TimerReset, UserRound, Users, WalletCards } from 'lucide-react'
+import { ArrowLeft, ChartNoAxesColumnIncreasing, ClipboardList, Clock3, History, House, LogOut, Settings, TimerReset, UserRound, Users, WalletCards } from 'lucide-react'
 import { NavLink } from 'react-router-dom'
 import { cn } from '@/lib/utils'
+import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
+import { useAuth } from '@/features/auth/use-auth'
 import { ThemeToggle } from './theme-toggle'
 
 const userItems = [
@@ -22,6 +24,7 @@ const adminItems = [
 
 export function Sidebar({ onNavigate, admin = false }: { onNavigate?: () => void; admin?: boolean }) {
   const items = admin ? adminItems : userItems
+  const { logout } = useAuth()
 
   return (
     <aside className="flex h-full w-full flex-col bg-zinc-50 px-4 py-5 dark:bg-zinc-950 lg:w-64 lg:border-r lg:px-5">
@@ -65,9 +68,16 @@ export function Sidebar({ onNavigate, admin = false }: { onNavigate?: () => void
         </NavLink>
       )}
 
-      <div className="mt-auto hidden items-center justify-between px-2 lg:flex">
-        <span className="text-xs text-muted-foreground">Preferências</span>
-        <ThemeToggle />
+      <div className="mt-auto space-y-3">
+        <Button variant="ghost" className="w-full justify-start gap-3 px-3 py-2.5 text-sm text-muted-foreground hover:text-foreground" onClick={() => void logout()}>
+          <LogOut className="size-4" />
+          Sair
+        </Button>
+
+        <div className="hidden items-center justify-between px-2 lg:flex">
+          <span className="text-xs text-muted-foreground">Preferências</span>
+          <ThemeToggle />
+        </div>
       </div>
     </aside>
   )

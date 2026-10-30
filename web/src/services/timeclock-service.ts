@@ -54,22 +54,16 @@ export async function getEntries(page = 1, perPage = 100, sort: SortDirection = 
 }
 
 export async function registerTimeIn() {
-  const { data } = await api.post<TimeEntryActionResponse>('/employees/time-entries/in', {
-    clockIn: new Date().toISOString(),
-  })
+  const { data } = await api.post<TimeEntryActionResponse>('/employees/time-entries/in')
   return data
 }
 
 export async function toggleBreak() {
-  const { data } = await api.post<TimeEntryActionResponse>('/employees/time-entries/break', {
-    breakIn: new Date().toISOString(),
-  })
+  const { data } = await api.post<TimeEntryActionResponse>('/employees/time-entries/break')
   return data
 }
 
 export async function registerTimeOut() {
-  const { data } = await api.post<TimeEntryActionResponse>('/employees/time-entries/out', {
-    clockOut: new Date().toISOString(),
-  })
+  const { data } = await api.post<TimeEntryActionResponse>('/employees/time-entries/out')
   return data
 }

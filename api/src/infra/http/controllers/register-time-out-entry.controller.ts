@@ -4,9 +4,7 @@ import type { RegisterTimeOutEntryUseCase } from "@src/domain/manage/application
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { z } from "zod";
 
-export const registerTimeOutEntryBodySchema = z.object({
-  clockOut: z.coerce.date(),
-});
+export const registerTimeOutEntryBodySchema = z.object({}).optional();
 
 export class RegisterTimeOutEntryController {
   constructor(
@@ -15,7 +13,7 @@ export class RegisterTimeOutEntryController {
   ) {}
 
   async handle(request: FastifyRequest, reply: FastifyReply): Promise<void> {
-    const { clockOut } = registerTimeOutEntryBodySchema.parse(request.body);
+    registerTimeOutEntryBodySchema.parse(request.body);
     const token = this.fastify.jwtAuth.getTokenByCookieOrHeader(request);
 
     if (!token) {
@@ -25,7 +23,7 @@ export class RegisterTimeOutEntryController {
     try {
       const requester = this.fastify.jwtAuth.verifyToken(token);
       const result = await this.registerTimeOutEntryUseCase.execute({
-        clockOut,
+        clockOut: new Date(),
         requesterId: requester.id as string,
       });
 

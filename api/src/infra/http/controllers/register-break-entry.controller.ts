@@ -4,9 +4,7 @@ import type { RegisterBreakEntryUseCase } from "@src/domain/manage/application/u
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { z } from "zod";
 
-export const registerBreakEntryBodySchema = z.object({
-  breakIn: z.coerce.date(),
-});
+export const registerBreakEntryBodySchema = z.object({}).optional();
 
 export class RegisterBreakEntryController {
   constructor(
@@ -15,7 +13,7 @@ export class RegisterBreakEntryController {
   ) {}
 
   async handle(request: FastifyRequest, reply: FastifyReply): Promise<void> {
-    const { breakIn } = registerBreakEntryBodySchema.parse(request.body);
+    registerBreakEntryBodySchema.parse(request.body);
     const token = this.fastify.jwtAuth.getTokenByCookieOrHeader(request);
 
     if (!token) {
@@ -25,7 +23,7 @@ export class RegisterBreakEntryController {
     try {
       const requester = this.fastify.jwtAuth.verifyToken(token);
       const result = await this.registerBreakEntryUseCase.execute({
-        breakIn,
+        breakIn: new Date(),
         requesterId: requester.id as string,
       });
 

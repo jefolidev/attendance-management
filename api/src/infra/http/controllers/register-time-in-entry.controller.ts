@@ -4,9 +4,7 @@ import type { RegisterTimeInEntryUseCase } from "@src/domain/manage/application/
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { z } from "zod";
 
-export const registerTimeInEntryBodySchema = z.object({
-  clockIn: z.coerce.date(),
-});
+export const registerTimeInEntryBodySchema = z.object({}).optional();
 
 export class RegisterTimeInEntryController {
   constructor(
@@ -15,7 +13,7 @@ export class RegisterTimeInEntryController {
   ) {}
 
   async handle(request: FastifyRequest, reply: FastifyReply): Promise<void> {
-    const { clockIn } = registerTimeInEntryBodySchema.parse(request.body);
+    registerTimeInEntryBodySchema.parse(request.body);
     const token = this.fastify.jwtAuth.getTokenByCookieOrHeader(request);
 
     if (!token) {
@@ -25,7 +23,7 @@ export class RegisterTimeInEntryController {
     try {
       const requester = this.fastify.jwtAuth.verifyToken(token);
       const result = await this.registerTimeInEntryUseCase.execute({
-        clockIn,
+        clockIn: new Date(),
         requesterId: requester.id as string,
       });
 

@@ -17,7 +17,7 @@ export class GetEmployeeBalanceUseCase {
 
 	constructor(
 		private readonly employeeRepository: EmployeeRepository,
-		timeBalanceRepository: TimeBalanceRepository,
+		private readonly timeBalanceRepository: TimeBalanceRepository,
 	) {
 		this.getBalanceUseCase = new GetBalanceUseCase(
 			employeeRepository,
@@ -29,7 +29,7 @@ export class GetEmployeeBalanceUseCase {
 		requesterId,
 		employeeId,
 	}: GetEmployeeBalanceUseCaseRequest): Promise<
-		Either<NotAllowedError | NotFoundError, { balance: TimeBalance }>
+		Either<NotAllowedError | NotFoundError, { balance: TimeBalance | null }>
 	> {
 		const authorization = await ensureAdminAndTarget(
 			this.employeeRepository,
@@ -39,6 +39,12 @@ export class GetEmployeeBalanceUseCase {
 
 		if (authorization.isLeft()) {
 			return left(authorization.value)
+		}
+
+		const balance = await this.timeBalanceRepository.findByEmployeeId(employeeId)
+
+		if (!balance) {
+			return right({ balance: null })
 		}
 
 		const result = await this.getBalanceUseCase.execute({ requesterId: employeeId })

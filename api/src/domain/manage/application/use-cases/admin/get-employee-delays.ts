@@ -1,6 +1,7 @@
 import { left, right, type Either } from '@src/core/either'
 import { NotAllowedError } from '@src/core/entities/errors/not-allowed-error'
 import { NotFoundError } from '@src/core/entities/errors/not-found-error'
+import { normalizePagination } from '@src/core/repositories/pagination'
 import type { EmployeeRepository } from '../../repositories/employee.repository'
 import type { TimeEntryRepository } from '../../repositories/time-entry.repository'
 import type { WorkScheduleRepository } from '../../repositories/work-schedule.repository'
@@ -20,7 +21,7 @@ export class GetEmployeeDelaysUseCase {
 
 	constructor(
 		private readonly employeeRepository: EmployeeRepository,
-		workScheduleRepository: WorkScheduleRepository,
+		private readonly workScheduleRepository: WorkScheduleRepository,
 		timeEntryRepository: TimeEntryRepository,
 	) {
 		this.getAccumulatedDelayTimeUseCase = new GetAccumulatedDelayTimeUseCase(
@@ -55,6 +56,19 @@ export class GetEmployeeDelaysUseCase {
 
 		if (authorization.isLeft()) {
 			return left(authorization.value)
+		}
+
+		const workSchedule = await this.workScheduleRepository.findByEmployeeId(employeeId)
+
+		if (!workSchedule) {
+			const pagination = normalizePagination({ page, perPage, sort })
+			return right({
+				totalLateMinutes: 0,
+				compensatedMinutes: 0,
+				uncompensatedMinutes: 0,
+				days: [],
+				pagination: { ...pagination, hasNextPage: false, totalPages: 1 },
+			})
 		}
 
 		const result = await this.getAccumulatedDelayTimeUseCase.execute({

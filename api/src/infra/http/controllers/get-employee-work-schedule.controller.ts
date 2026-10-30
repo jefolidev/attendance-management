@@ -1,4 +1,5 @@
 import type { GetEmployeeWorkScheduleUseCase } from '@src/domain/manage/application/use-cases/admin/get-employee-work-schedule'
+import { NotFoundError } from '@src/core/entities/errors/not-found-error'
 import type { FastifyReply, FastifyRequest } from 'fastify'
 import { presentWorkSchedule } from '@src/infra/http/presenters/work-schedule.presenter'
 import { sendAdminError } from './admin-error-response'
@@ -16,6 +17,14 @@ export class GetEmployeeWorkScheduleController {
 			})
 
 			if (result.isLeft()) {
+				if (
+					result.value instanceof NotFoundError &&
+					result.value.message === 'Work schedule not found'
+				) {
+					reply.status(200).send(null)
+					return
+				}
+
 				sendAdminError(result.value, reply)
 				return
 			}

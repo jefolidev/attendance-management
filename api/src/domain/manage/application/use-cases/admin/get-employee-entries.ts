@@ -2,6 +2,7 @@ import { left, right, type Either } from '@src/core/either'
 import { BadRequestError } from '@src/core/entities/errors/bad-request-error'
 import { NotAllowedError } from '@src/core/entities/errors/not-allowed-error'
 import { NotFoundError } from '@src/core/entities/errors/not-found-error'
+import { normalizePagination } from '@src/core/repositories/pagination'
 import type { EmployeeRepository } from '../../repositories/employee.repository'
 import type { TimeEntryRepository } from '../../repositories/time-entry.repository'
 import type { WorkScheduleRepository } from '../../repositories/work-schedule.repository'
@@ -22,7 +23,7 @@ export class GetEmployeeEntriesUseCase {
 
 	constructor(
 		private readonly employeeRepository: EmployeeRepository,
-		workScheduleRepository: WorkScheduleRepository,
+		private readonly workScheduleRepository: WorkScheduleRepository,
 		timeEntryRepository: TimeEntryRepository,
 	) {
 		this.listEmployeeEntriesUseCase = new ListEmployeeEntries(
@@ -57,6 +58,16 @@ export class GetEmployeeEntriesUseCase {
 
 		if (authorization.isLeft()) {
 			return left(authorization.value)
+		}
+
+		const workSchedule = await this.workScheduleRepository.findByEmployeeId(employeeId)
+
+		if (!workSchedule) {
+			const pagination = normalizePagination({ page, perPage, sort })
+			return right({
+				entries: [],
+				pagination: { ...pagination, hasNextPage: false },
+			})
 		}
 
 		const result = await this.listEmployeeEntriesUseCase.execute({

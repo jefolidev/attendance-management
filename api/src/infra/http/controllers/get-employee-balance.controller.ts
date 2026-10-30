@@ -31,7 +31,11 @@ export class GetEmployeeBalanceController {
 				return
 			}
 
-			reply.status(200).send({ balance: serializeBalance(result.value.balance) })
+			reply.status(200).send({
+				balance: result.value.balance
+					? serializeBalance(result.value.balance)
+					: null,
+			})
 		} catch (error) {
 			sendAdminError(error, reply)
 		}

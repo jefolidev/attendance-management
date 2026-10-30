@@ -1,22 +1,33 @@
-import { BadRequestError } from '@src/core/entities/errors/bad-request-error'
 import { makeEmployee } from '@test/factories/make-employee'
 import { makeTimeEntry } from '@test/factories/make-time-entry'
 import { InMemoryEmployeeRepository } from '@test/repositories/repository/in-memory-employee.repository'
+import { InMemoryTimeBalanceEntryRepository } from '@test/repositories/repository/in-memory-time-balance-entry.repository'
+import { InMemoryTimeBalanceRepository } from '@test/repositories/repository/in-memory-time-balance.repository'
 import { InMemoryTimeEntryRepository } from '@test/repositories/repository/in-memory-time-entry.repository'
+import { InMemoryWorkScheduleRepository } from '@test/repositories/repository/in-memory-work-schedule.repository'
 import { TimeEntryStage } from '../../../enterprise/entities/time-entry'
 import { UpdateEmployeeTimeEntryUseCase } from './update-employee-time-entry'
 
 let employeeRepository: InMemoryEmployeeRepository
 let timeEntryRepository: InMemoryTimeEntryRepository
+	let timeBalanceRepository: InMemoryTimeBalanceRepository
+	let timeBalanceEntryRepository: InMemoryTimeBalanceEntryRepository
+	let workScheduleRepository: InMemoryWorkScheduleRepository
 let sut: UpdateEmployeeTimeEntryUseCase
 
 describe('Update Employee Time Entry', () => {
 	beforeEach(() => {
 		employeeRepository = new InMemoryEmployeeRepository()
 		timeEntryRepository = new InMemoryTimeEntryRepository()
+		timeBalanceRepository = new InMemoryTimeBalanceRepository()
+		timeBalanceEntryRepository = new InMemoryTimeBalanceEntryRepository(timeBalanceRepository)
+		workScheduleRepository = new InMemoryWorkScheduleRepository()
 		sut = new UpdateEmployeeTimeEntryUseCase(
 			employeeRepository,
 			timeEntryRepository,
+			workScheduleRepository,
+			timeBalanceRepository,
+			timeBalanceEntryRepository,
 		)
 	})
 

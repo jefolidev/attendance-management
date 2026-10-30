@@ -24,24 +24,22 @@ type UpdateEmployeeTimeEntryUseCaseResponse = Either<
 >
 
 export class UpdateEmployeeTimeEntryUseCase {
-	private readonly recalculateEmployeeTimeBalance?: RecalculateEmployeeTimeBalanceUseCase
+	private readonly recalculateEmployeeTimeBalance: RecalculateEmployeeTimeBalanceUseCase
 
 	constructor(
 		private readonly employeeRepository: EmployeeRepository,
 		private readonly timeEntryRepository: TimeEntryRepository,
-		workScheduleRepository?: WorkScheduleRepository,
-		timeBalanceRepository?: TimeBalanceRepository,
-		timeBalanceEntryRepository?: TimeBalanceEntryRepository,
+		workScheduleRepository: WorkScheduleRepository,
+		timeBalanceRepository: TimeBalanceRepository,
+		timeBalanceEntryRepository: TimeBalanceEntryRepository,
 	) {
-		if (workScheduleRepository && timeBalanceRepository && timeBalanceEntryRepository) {
-			this.recalculateEmployeeTimeBalance = new RecalculateEmployeeTimeBalanceUseCase(
-				employeeRepository,
-				workScheduleRepository,
-				timeEntryRepository,
-				timeBalanceRepository,
-				timeBalanceEntryRepository,
-			)
-		}
+		this.recalculateEmployeeTimeBalance = new RecalculateEmployeeTimeBalanceUseCase(
+			employeeRepository,
+			workScheduleRepository,
+			timeEntryRepository,
+			timeBalanceRepository,
+			timeBalanceEntryRepository,
+		)
 	}
 
 	async execute({
@@ -82,7 +80,7 @@ export class UpdateEmployeeTimeEntryUseCase {
 		if (clockOut !== undefined) timeEntry.clockOut = clockOut
 
 		await this.timeEntryRepository.update(timeEntry)
-		await this.recalculateEmployeeTimeBalance?.execute({ employeeId })
+		await this.recalculateEmployeeTimeBalance.execute({ employeeId })
 
 		return right(undefined)
 	}

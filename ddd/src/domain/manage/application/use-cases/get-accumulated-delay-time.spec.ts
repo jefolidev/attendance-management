@@ -9,6 +9,7 @@ import { InMemoryWorkScheduleRepository } from '@test/repositories/repository/in
 import { TimeEntryStage } from '../../enterprise/entities/time-entry'
 import { WorkSchedule } from '../../enterprise/entities/work-schedule'
 import { GetAccumulatedDelayTimeUseCase } from './get-accumulated-delay-time'
+import { UpdateWorkScheduleUseCase } from './update-work-schedule'
 
 dayjs.extend(utc)
 dayjs.extend(timezone)
@@ -117,5 +118,46 @@ describe('Get Accumulated Delay Time', () => {
 			expect(response.value.compensatedMinutes).toBe(20)
 			expect(response.value.uncompensatedMinutes).toBe(20)
 		}
+	})
+
+	it('should recalculate delays after the work schedule changes', async () => {
+		const requester = makeEmployee({ role: 'EMPLOYEE' })
+		await inMemoryEmployeeRepository.create(requester)
+		await inMemoryWorkScheduleRepository.create(
+			WorkSchedule.create({
+				employeeId: requester.id,
+				startTime: '09:00',
+				endTime: '17:00',
+				breaksPerDay: 1,
+				days: [5],
+				lateTolerance: 5,
+			}),
+		)
+		await inMemoryTimeEntryRepository.create(
+			makeTimeEntry({
+				employeeId: requester.id,
+				clockIn: dayjs.tz('2026-01-02 09:10', 'America/Fortaleza').toDate(),
+				clockOut: dayjs.tz('2026-01-02 17:00', 'America/Fortaleza').toDate(),
+				status: TimeEntryStage.CLOCKED_OUT,
+			}),
+		)
+
+		const beforeUpdate = await sut.execute({ requesterId: requester.id.toString() })
+		expect(beforeUpdate.isRight()).toBe(true)
+		if (beforeUpdate.isRight()) expect(beforeUpdate.value.totalLateMinutes).toBe(10)
+
+		const updateSchedule = new UpdateWorkScheduleUseCase(
+			inMemoryEmployeeRepository,
+			inMemoryWorkScheduleRepository,
+		)
+		const updateResponse = await updateSchedule.execute({
+			requesterId: requester.id.toString(),
+			startTime: '09:15',
+		})
+		expect(updateResponse.isRight()).toBe(true)
+
+		const afterUpdate = await sut.execute({ requesterId: requester.id.toString() })
+		expect(afterUpdate.isRight()).toBe(true)
+		if (afterUpdate.isRight()) expect(afterUpdate.value.totalLateMinutes).toBe(0)
 	})
 })

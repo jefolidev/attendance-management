@@ -1,7 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { ArrowLeft, Clock3, KeyRound, TimerReset } from 'lucide-react'
-import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { Link, useParams } from 'react-router-dom'
 import { z } from 'zod'
@@ -14,9 +13,11 @@ import { Badge } from '@/components/ui/badge'
 import { EmptyState } from '@/components/shared/empty-state'
 import { LoadingState } from '@/components/shared/loading-state'
 import { PageHeader } from '@/components/shared/page-header'
+import { WorkScheduleForm } from '@/components/shared/work-schedule-form'
 import { useAuth } from '@/features/auth/use-auth'
 import { formatDateKey, formatDateTime, formatDuration, getErrorMessage } from '@/lib/formatters'
-import { getAdminEmployeeBalance, getAdminEmployeeDelays, getAdminEmployeeEntries, getAdminEmployeeWorkSchedule, getAdminEmployees, updateEmployeePassword } from '@/services/admin-service'
+import type { WorkScheduleFormValues } from '@/lib/work-schedule-schema'
+import { getAdminEmployeeBalance, getAdminEmployeeDelays, getAdminEmployeeEntries, getAdminEmployeeWorkSchedule, getAdminEmployees, updateAdminEmployeeWorkSchedule, updateEmployeePassword } from '@/services/admin-service'
 import { toast } from 'sonner'
 
 const passwordSchema = z.object({ password: z.string().min(8, 'A senha precisa ter pelo menos 8 caracteres.') })
@@ -24,7 +25,7 @@ type PasswordForm = z.infer<typeof passwordSchema>
 
 export function AdminUserDetailPage() {
   const { id } = useParams<{ id: string }>()
-  const { setImpersonatedUser, impersonatedUser } = useAuth()
+  const { impersonatedUser } = useAuth()
   const queryClient = useQueryClient()
   const employeesQuery = useQuery({ queryKey: ['admin-employees', 1, 100, 'desc'], queryFn: () => getAdminEmployees(1, 100, 'desc') })
   const user = employeesQuery.data?.employees.find((employee) => employee.id === id)
@@ -33,11 +34,8 @@ export function AdminUserDetailPage() {
   const delaysQuery = useQuery({ queryKey: ['admin-user-delays', id], queryFn: () => getAdminEmployeeDelays(id!, 1, 5, 'desc'), enabled: Boolean(id) })
   const scheduleQuery = useQuery({ queryKey: ['admin-user-schedule', id], queryFn: () => getAdminEmployeeWorkSchedule(id!), enabled: Boolean(id) })
   const passwordMutation = useMutation({ mutationFn: (values: PasswordForm) => updateEmployeePassword(id!, values.password), onSuccess: async () => { await queryClient.invalidateQueries({ queryKey: ['admin-employees'] }); reset(); toast.success('Senha atualizada.') }, onError: (error) => toast.error(getErrorMessage(error)) })
+  const scheduleMutation = useMutation({ mutationFn: (values: WorkScheduleFormValues) => updateAdminEmployeeWorkSchedule(id!, values), onSuccess: async () => { await Promise.all([queryClient.invalidateQueries({ queryKey: ['admin-user-schedule', id] }), queryClient.invalidateQueries({ queryKey: ['admin-user-entries', id] }), queryClient.invalidateQueries({ queryKey: ['admin-user-delays', id] })]); toast.success('Horário de trabalho atualizado.') }, onError: (error) => toast.error(getErrorMessage(error)) })
   const { register, handleSubmit, reset, formState: { errors } } = useForm<PasswordForm>({ resolver: zodResolver(passwordSchema) })
-
-  useEffect(() => {
-    if (user) setImpersonatedUser(user)
-  }, [setImpersonatedUser, user])
 
   if (employeesQuery.isLoading) return <LoadingState rows={5} />
   if (!user) return <EmptyState title="Usuário não encontrado" description="O perfil solicitado não está disponível na API." action={<Button asChild><Link to="/admin/users">Voltar para usuários</Link></Button>} />
@@ -50,6 +48,11 @@ export function AdminUserDetailPage() {
       <div className="flex items-center gap-4"><Avatar size="lg"><AvatarFallback>{user.username.slice(0, 2).toUpperCase()}</AvatarFallback></Avatar><div><p className="font-medium">{user.username}</p><Badge variant="outline">{user.role === 'ADMIN' ? 'Administrador' : 'Colaborador'}</Badge></div></div>
 
       <section className="grid gap-4 md:grid-cols-3"><Card className="border-border/70 shadow-none"><CardContent className="p-5"><p className="text-sm text-muted-foreground">Saldo atual</p><p className="mt-2 text-3xl font-semibold tabular-nums">{balanceQuery.data?.balance ? formatDuration(Math.abs(balanceQuery.data.balance.balanceMinutes)) : '—'}</p><p className="mt-1 text-xs text-muted-foreground">{balanceQuery.data?.balance && balanceQuery.data.balance.balanceMinutes < 0 ? 'Em atraso' : balanceQuery.data?.balance ? 'Saldo positivo' : 'Sem saldo configurado'}</p></CardContent></Card><Card className="border-border/70 shadow-none"><CardContent className="p-5"><p className="text-sm text-muted-foreground">Atrasos acumulados</p><p className="mt-2 text-3xl font-semibold tabular-nums">{delaysQuery.data ? formatDuration(delaysQuery.data.totalLateMinutes) : '—'}</p><TimerReset className="mt-2 size-4 text-muted-foreground" /></CardContent></Card><Card className="border-border/70 shadow-none"><CardContent className="p-5"><p className="text-sm text-muted-foreground">Horário</p><p className="mt-2 text-xl font-semibold tabular-nums">{scheduleQuery.data ? `${scheduleQuery.data.startTime}–${scheduleQuery.data.endTime}` : '—'}</p><Clock3 className="mt-2 size-4 text-muted-foreground" /></CardContent></Card></section>
+
+      {scheduleQuery.isLoading && <LoadingState rows={2} />}
+      {scheduleQuery.isError && <EmptyState title="Horário indisponível" description="Não foi possível carregar o horário de trabalho deste usuário." action={<Button variant="outline" onClick={() => void scheduleQuery.refetch()}>Tentar novamente</Button>} />}
+      {scheduleQuery.data === null && <EmptyState title="Horário ainda não configurado" description="Este usuário ainda não possui uma jornada para editar." />}
+      {scheduleQuery.data && <Card className="border-border/70 shadow-none"><CardHeader><CardTitle className="text-lg">Editar horário de trabalho</CardTitle></CardHeader><CardContent><WorkScheduleForm schedule={scheduleQuery.data} onSubmit={(values) => scheduleMutation.mutate(values)} isSubmitting={scheduleMutation.isPending} idPrefix="admin-user-work-schedule" /></CardContent></Card>}
 
       <Card className="border-border/70 shadow-none"><CardHeader><CardTitle className="flex items-center gap-2 text-lg"><KeyRound className="size-4" /> Alterar senha</CardTitle></CardHeader><CardContent><form className="flex max-w-lg flex-col gap-3 sm:flex-row sm:items-end" onSubmit={handleSubmit((values) => passwordMutation.mutate(values))}><div className="flex-1 space-y-2"><Label htmlFor="new-password">Nova senha</Label><Input id="new-password" type="password" {...register('password')} aria-invalid={Boolean(errors.password)} />{errors.password && <p className="text-xs text-destructive">{errors.password.message}</p>}</div><Button type="submit" disabled={passwordMutation.isPending || Boolean(impersonatedUser)}>{impersonatedUser ? 'Saia da visualização para editar' : passwordMutation.isPending ? 'Salvando…' : 'Salvar senha'}</Button></form></CardContent></Card>
 

@@ -57,8 +57,10 @@ export async function getAdminEmployeeDelays(employeeId: string, page = 1, perPa
 }
 
 export async function getAdminEmployeeWorkSchedule(employeeId: string) {
-  const { data } = await api.get<WorkSchedule | null>(`/admin/employees/${employeeId}/work-schedule`)
-  return data
+  const { data, status } = await api.get<WorkSchedule | null>(`/admin/employees/${employeeId}/work-schedule`, {
+    validateStatus: (responseStatus) => responseStatus === 200 || responseStatus === 404,
+  })
+  return status === 404 ? null : data
 }
 
 export async function updateAdminEmployeeWorkSchedule(employeeId: string, payload: Partial<Pick<WorkSchedule, 'startTime' | 'endTime' | 'breakStartTime' | 'breakEndTime' | 'lateTolerance' | 'breaksPerDay' | 'days' | 'dayOverrides'>>) {

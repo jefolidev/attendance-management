@@ -1,7 +1,7 @@
 import type { GetEmployeeEntriesUseCase } from '@src/domain/manage/application/use-cases/admin/get-employee-entries'
 import type { FastifyReply, FastifyRequest } from 'fastify'
 import { z } from 'zod'
-import { presentEntriesAndStatisticsList } from '../../../presenters/entries-and-statistics.presenter'
+import { presentEntriesAndStatisticsList } from '../presenters/entries-and-statistics.presenter'
 import { sendAdminError } from './admin-error-response'
 import { employeeIdParamsSchema } from './update-employee-password.controller'
 

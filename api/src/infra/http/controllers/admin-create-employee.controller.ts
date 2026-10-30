@@ -11,7 +11,7 @@ export const adminCreateEmployeeBodySchema = z.object({
 	role: z.enum(['ADMIN', 'EMPLOYEE']),
 })
 
-export class CreateEmployeeController {
+export class AdminCreateEmployeeController {
 	constructor(private readonly useCase: CreateEmployeeUseCase) {}
 
 	async handle(request: FastifyRequest, reply: FastifyReply): Promise<void> {

@@ -57,6 +57,10 @@ export class RegisterTimeOutEntryUseCase {
 			)
 		}
 
+		if (!workSchedule.getDailySchedule(clockOut)) {
+			return left(new BadRequestError('No work schedule configured for this day.'))
+		}
+
 		const existingTimeEntry =
 			await this.timeEntryRepository.findInProgressByEmployeeId(requesterId)
 

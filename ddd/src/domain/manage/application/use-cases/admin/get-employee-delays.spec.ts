@@ -1,3 +1,6 @@
+import dayjs from 'dayjs'
+import timezone from 'dayjs/plugin/timezone'
+import utc from 'dayjs/plugin/utc'
 import { NotAllowedError } from '@src/core/entities/errors/not-allowed-error'
 import { NotFoundError } from '@src/core/entities/errors/not-found-error'
 import { makeEmployee } from '@test/factories/make-employee'
@@ -8,6 +11,9 @@ import { InMemoryWorkScheduleRepository } from '@test/repositories/repository/in
 import { TimeEntryStage } from '../../../enterprise/entities/time-entry'
 import { WorkSchedule } from '../../../enterprise/entities/work-schedule'
 import { GetEmployeeDelaysUseCase } from './get-employee-delays'
+
+dayjs.extend(utc)
+dayjs.extend(timezone)
 
 let employeeRepository: InMemoryEmployeeRepository
 let timeEntryRepository: InMemoryTimeEntryRepository
@@ -38,14 +44,17 @@ describe('Get Employee Delays', () => {
 				endTime: '17:00',
 				lateTolerance: 5,
 				breaksPerDay: 1,
-				days: [1, 2, 3, 4, 5],
+				days: [0, 1, 2, 3, 4, 5, 6],
 			}),
 		)
-		const yesterday = new Date()
-		yesterday.setDate(yesterday.getDate() - 1)
-		yesterday.setHours(9, 20, 0, 0)
-		const end = new Date(yesterday)
-		end.setHours(17, 0, 0, 0)
+		const yesterday = dayjs
+			.tz('2026-01-02 09:20', 'America/Fortaleza')
+			.subtract(1, 'day')
+			.toDate()
+		const end = dayjs
+			.tz('2026-01-02 17:00', 'America/Fortaleza')
+			.subtract(1, 'day')
+			.toDate()
 		await timeEntryRepository.create(
 			makeTimeEntry({
 				employeeId: employee.id,

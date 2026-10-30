@@ -13,6 +13,11 @@ export const updateEmployeeWorkScheduleBodySchema = z
 		lateTolerance: z.number().int().nonnegative().optional(),
 		breaksPerDay: z.number().int().nonnegative().optional(),
 		days: z.array(z.number().int().min(0).max(6)).nonempty().optional(),
+		dayOverrides: z.array(z.object({
+			dayOfWeek: z.number().int().min(0).max(6),
+			startTime: z.string().regex(/^\d{2}:\d{2}$/).optional(),
+			endTime: z.string().regex(/^\d{2}:\d{2}$/).optional(),
+		})).optional(),
 	})
 	.refine((body) => Object.keys(body).length > 0, {
 		message: 'At least one field must be provided',

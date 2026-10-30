@@ -11,6 +11,11 @@ export const createWorkScheduleBodySchema = z.object({
   lateTolerance: z.number().int().nonnegative(),
   breaksPerDay: z.number().int().nonnegative(),
   days: z.array(z.number().int().min(0).max(6)).nonempty(),
+  dayOverrides: z.array(z.object({
+    dayOfWeek: z.number().int().min(0).max(6),
+    startTime: z.string().regex(/^\d{2}:\d{2}$/).optional(),
+    endTime: z.string().regex(/^\d{2}:\d{2}$/).optional(),
+  })).optional(),
 });
 
 export type CreateWorkScheduleBody = z.infer<typeof createWorkScheduleBodySchema>
@@ -19,7 +24,7 @@ export class CreateWorkScheduleController {
   constructor(private readonly createWorkScheduleUseCase: CreateWorkScheduleUseCase, private readonly fastify: FastifyInstance) {}
 
   async handle(request: FastifyRequest, response: FastifyReply): Promise<void> {
-    const { startTime, endTime, lateTolerance, breaksPerDay, days } = createWorkScheduleBodySchema.parse(request.body);
+    const { startTime, endTime, lateTolerance, breaksPerDay, days, dayOverrides } = createWorkScheduleBodySchema.parse(request.body);
 
 
     const token = this.fastify.jwtAuth.getTokenByCookieOrHeader(request);
@@ -38,6 +43,7 @@ export class CreateWorkScheduleController {
         lateTolerance,
         breaksPerDay,
         days,
+        dayOverrides,
         requesterId: requester.id as string,
       });
 

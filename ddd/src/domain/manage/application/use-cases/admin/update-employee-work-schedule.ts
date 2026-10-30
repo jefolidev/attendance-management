@@ -6,6 +6,8 @@ import type { EmployeeRepository } from '../../repositories/employee.repository'
 import type { WorkScheduleRepository } from '../../repositories/work-schedule.repository'
 import { ensureAdminAndTarget } from './ensure-admin'
 import { validateTime } from './employee-validation'
+import type { WorkScheduleDayOverride } from '../../enterprise/entities/work-schedule'
+import { validateDayOverrides } from '../work-schedule-validation'
 
 interface UpdateEmployeeWorkScheduleUseCaseRequest {
 	requesterId: string
@@ -15,6 +17,7 @@ interface UpdateEmployeeWorkScheduleUseCaseRequest {
 	lateTolerance?: number
 	breaksPerDay?: number
 	days?: number[]
+	dayOverrides?: WorkScheduleDayOverride[]
 }
 
 type UpdateEmployeeWorkScheduleUseCaseResponse = Either<
@@ -37,6 +40,7 @@ export class UpdateEmployeeWorkScheduleUseCase {
 			request.lateTolerance,
 			request.breaksPerDay,
 			request.days,
+			request.dayOverrides,
 		].some((field) => field !== undefined)
 
 		if (!fieldsProvided) {
@@ -92,6 +96,13 @@ export class UpdateEmployeeWorkScheduleUseCase {
 
 		const nextStartTime = request.startTime ?? workSchedule.startTime
 		const nextEndTime = request.endTime ?? workSchedule.endTime
+		const nextDays = request.days ?? workSchedule.days
+		const nextDayOverrides = request.dayOverrides ?? workSchedule.dayOverrides
+		const dayOverridesError = validateDayOverrides(nextDayOverrides, nextDays, nextStartTime, nextEndTime)
+
+		if (dayOverridesError) {
+			return left(new BadRequestError(dayOverridesError))
+		}
 
 		if (nextStartTime >= nextEndTime) {
 			return left(new BadRequestError('Start time must be before end time'))
@@ -101,7 +112,8 @@ export class UpdateEmployeeWorkScheduleUseCase {
 		workSchedule.endTime = nextEndTime
 		workSchedule.lateTolerance = request.lateTolerance ?? workSchedule.lateTolerance
 		workSchedule.breaksPerDay = request.breaksPerDay ?? workSchedule.breaksPerDay
-		workSchedule.days = request.days ?? workSchedule.days
+		workSchedule.days = nextDays
+		workSchedule.dayOverrides = nextDayOverrides
 
 		await this.workScheduleRepository.update(workSchedule)
 

@@ -94,19 +94,13 @@ export class GetAccumulatedDelayTimeUseCase {
 			})
 		}
 
-		const { hours: startHour, minutes: startMinute } = this.parseTimeString(
-			workSchedule.startTime,
-		)
-		const { hours: endHour, minutes: endMinute } = this.parseTimeString(
-			workSchedule.endTime,
-		)
-
 		const completedTimeEntries =
 			await this.timeEntryRepository.findCompletedByEmployeeId(
 				employee.id.toString(),
 			)
 
 		let compensatedMinutes = 0
+		let uncompensatedMinutes = 0
 		let totalLateMinutes = 0
 		const delayDays: DelayDay[] = []
 
@@ -115,12 +109,16 @@ export class GetAccumulatedDelayTimeUseCase {
 
 			const clockIn = dayjs(entry.clockIn).tz(WORK_SCHEDULE_TIMEZONE)
 			const clockOut = dayjs(entry.clockOut).tz(WORK_SCHEDULE_TIMEZONE)
-			const day = clockIn.startOf('day')
+			const dailySchedule = workSchedule.getDailySchedule(entry.clockIn)
 
-			const expectedStart = day
-				.add(startHour, 'hour')
-				.add(startMinute, 'minute')
-			const expectedEnd = day.add(endHour, 'hour').add(endMinute, 'minute')
+			if (!dailySchedule) continue
+
+			const expectedStart = dayjs(workSchedule.startTimeToDate(entry.clockIn)).tz(
+				WORK_SCHEDULE_TIMEZONE,
+			)
+			const expectedEnd = dayjs(workSchedule.endTimeToDate(entry.clockOut)).tz(
+				WORK_SCHEDULE_TIMEZONE,
+			)
 
 			const lateMinutes = Math.max(0, clockIn.diff(expectedStart, 'minute'))
 			const extraMinutes = Math.max(0, clockOut.diff(expectedEnd, 'minute'))
@@ -128,13 +126,17 @@ export class GetAccumulatedDelayTimeUseCase {
 			totalLateMinutes += lateMinutes
 			const dayCompensatedMinutes = Math.min(lateMinutes, extraMinutes)
 			compensatedMinutes += dayCompensatedMinutes
+			uncompensatedMinutes = Math.max(
+				0,
+				uncompensatedMinutes + lateMinutes - extraMinutes,
+			)
 
 			if (lateMinutes > 0) {
 				delayDays.push({
 					date: clockIn.toDate(),
 					clockIn: clockIn.toDate(),
 					clockOut: clockOut.toDate(),
-					expectedTime: workSchedule.startTime,
+				expectedTime: dailySchedule.startTime,
 					lateMinutes,
 					reason: 'LATE_ARRIVAL',
 					compensations:
@@ -161,7 +163,7 @@ export class GetAccumulatedDelayTimeUseCase {
 		return right({
 			compensatedMinutes,
 			totalLateMinutes,
-			uncompensatedMinutes: Math.max(0, totalLateMinutes - compensatedMinutes),
+			uncompensatedMinutes,
 			days,
 			pagination: {
 				...pagination,
@@ -171,16 +173,4 @@ export class GetAccumulatedDelayTimeUseCase {
 		})
 	}
 
-	private parseTimeString(timeString: string): {
-		hours: number
-		minutes: number
-	} {
-		const [hours, minutes] = timeString.split(':').map(Number)
-
-		if (!Number.isInteger(hours) || !Number.isInteger(minutes)) {
-			throw new Error(`Invalid time format: ${timeString}`)
-		}
-
-		return { hours: hours || 0, minutes: minutes || 0 }
-	}
 }

@@ -10,6 +10,13 @@ export interface WorkSchedule {
   lateTolerance: number
   breaksPerDay: number
   days: number[]
+  dayOverrides: WorkScheduleDayOverride[]
+}
+
+export interface WorkScheduleDayOverride {
+  dayOfWeek: number
+  startTime?: string
+  endTime?: string
 }
 
 export async function getWorkSchedule() {
@@ -20,10 +27,10 @@ export async function getWorkSchedule() {
   return status === 404 ? null : data
 }
 
-export async function createWorkSchedule(payload: Pick<WorkSchedule, 'startTime' | 'endTime' | 'lateTolerance' | 'breaksPerDay' | 'days'>) {
+export async function createWorkSchedule(payload: Pick<WorkSchedule, 'startTime' | 'endTime' | 'lateTolerance' | 'breaksPerDay' | 'days' | 'dayOverrides'>) {
   await api.post('/employees/work-schedule', payload)
 }
 
-export async function updateWorkSchedule(payload: Partial<Pick<WorkSchedule, 'startTime' | 'endTime' | 'lateTolerance' | 'breaksPerDay'>>) {
+export async function updateWorkSchedule(payload: Partial<Pick<WorkSchedule, 'startTime' | 'endTime' | 'lateTolerance' | 'breaksPerDay' | 'days' | 'dayOverrides'>>) {
   await api.patch('/employees/work-schedule', payload)
 }

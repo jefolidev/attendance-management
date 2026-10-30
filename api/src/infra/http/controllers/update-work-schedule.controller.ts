@@ -1,3 +1,4 @@
+import { BadRequestError } from "@src/core/entities/errors/bad-request-error";
 import { NotFoundError } from "@src/core/entities/errors/not-found-error";
 import type { UpdateWorkScheduleUseCase } from "@src/domain/manage/application/use-cases/update-work-schedule";
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
@@ -12,6 +13,11 @@ export const updateWorkScheduleBodySchema = z
     lateTolerance: z.number().int().nonnegative().optional(),
     breaksPerDay: z.number().int().nonnegative().optional(),
     days: z.array(z.number().int().min(0).max(6)).nonempty().optional(),
+    dayOverrides: z.array(z.object({
+      dayOfWeek: z.number().int().min(0).max(6),
+      startTime: z.string().regex(/^\d{2}:\d{2}$/).optional(),
+      endTime: z.string().regex(/^\d{2}:\d{2}$/).optional(),
+    })).optional(),
   })
   .refine((body) => Object.keys(body).length > 0, {
     message: "At least one field must be provided",
@@ -43,6 +49,10 @@ export class UpdateWorkScheduleController {
 
         if (error instanceof NotFoundError) {
           return reply.status(404).send({ error: error.message });
+        }
+
+        if (error instanceof BadRequestError) {
+          return reply.status(400).send({ error: error.message });
         }
       }
 

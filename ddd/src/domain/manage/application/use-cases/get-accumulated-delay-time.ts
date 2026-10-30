@@ -54,13 +54,6 @@ export class GetAccumulatedDelayTimeUseCase {
 			})
 		}
 
-		const { hours: startHour, minutes: startMinute } = this.parseTimeString(
-			workSchedule.startTime,
-		)
-		const { hours: endHour, minutes: endMinute } = this.parseTimeString(
-			workSchedule.endTime,
-		)
-
 		const completedTimeEntries =
 			await this.timeEntryRepository.findCompletedByEmployeeId(
 				employee.id.toString(),
@@ -73,12 +66,10 @@ export class GetAccumulatedDelayTimeUseCase {
 		for (const entry of completedTimeEntries) {
 			const clockIn = dayjs(entry.clockIn)
 			const clockOut = dayjs(entry.clockOut)
-			const day = clockIn.startOf('day')
+			if (!workSchedule.getDailySchedule(entry.clockIn)) continue
 
-			const expectedStart = day
-				.add(startHour, 'hour')
-				.add(startMinute, 'minute')
-			const expectedEnd = day.add(endHour, 'hour').add(endMinute, 'minute')
+			const expectedStart = dayjs(workSchedule.startTimeToDate(entry.clockIn))
+			const expectedEnd = dayjs(workSchedule.endTimeToDate(entry.clockOut))
 
 			const lateMinutes = Math.max(0, clockIn.diff(expectedStart, 'minute'))
 			const extraMinutes = Math.max(0, clockOut.diff(expectedEnd, 'minute'))
@@ -98,16 +89,4 @@ export class GetAccumulatedDelayTimeUseCase {
 		})
 	}
 
-	private parseTimeString(timeString: string): {
-		hours: number
-		minutes: number
-	} {
-		const [hours, minutes] = timeString.split(':').map(Number)
-
-		if (!Number.isInteger(hours) || !Number.isInteger(minutes)) {
-			throw new Error(`Invalid time format: ${timeString}`)
-		}
-
-		return { hours: hours || 0, minutes: minutes || 0 }
-	}
 }

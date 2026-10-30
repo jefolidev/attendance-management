@@ -54,6 +54,10 @@ export class RegisterTimeInEntryUseCase {
 			)
 		}
 
+		if (!workSchedule.getDailySchedule(clockIn)) {
+			return left(new BadRequestError('No work schedule configured for this day.'))
+		}
+
 		const existingTimeEntry =
 			await this.timeEntryRepository.findByEmployeeId(requesterId)
 

@@ -61,7 +61,7 @@ export async function getAdminEmployeeWorkSchedule(employeeId: string) {
   return data
 }
 
-export async function updateAdminEmployeeWorkSchedule(employeeId: string, payload: Partial<Pick<WorkSchedule, 'startTime' | 'endTime' | 'breakStartTime' | 'breakEndTime' | 'lateTolerance' | 'breaksPerDay' | 'days'>>) {
+export async function updateAdminEmployeeWorkSchedule(employeeId: string, payload: Partial<Pick<WorkSchedule, 'startTime' | 'endTime' | 'breakStartTime' | 'breakEndTime' | 'lateTolerance' | 'breaksPerDay' | 'days' | 'dayOverrides'>>) {
   await api.patch(`/admin/employees/${employeeId}/work-schedule`, payload)
 }
 

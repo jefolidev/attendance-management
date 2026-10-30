@@ -19,8 +19,20 @@ interface WorkScheduleProps {
 	breaksPerDay: number
 
 	days: number[]
+	dayOverrides?: WorkScheduleDayOverride[]
 
 	employeeId: UniqueEntityId
+}
+
+export interface WorkScheduleDayOverride {
+	dayOfWeek: number
+	startTime?: string
+	endTime?: string
+}
+
+export interface DailyWorkSchedule {
+	startTime: string
+	endTime: string
 }
 
 export class WorkSchedule extends AggregateRoot<WorkScheduleProps> {
@@ -42,6 +54,10 @@ export class WorkSchedule extends AggregateRoot<WorkScheduleProps> {
 
 	set days(value: number[]) {
 		this.props.days = value
+	}
+
+	set dayOverrides(value: WorkScheduleDayOverride[]) {
+		this.props.dayOverrides = value
 	}
 
 	set breaksPerDay(value: number) {
@@ -80,8 +96,32 @@ export class WorkSchedule extends AggregateRoot<WorkScheduleProps> {
 		return this.props.days
 	}
 
+	get dayOverrides(): WorkScheduleDayOverride[] {
+		return this.props.dayOverrides ?? []
+	}
+
 	get breaksPerDay(): number {
 		return this.props.breaksPerDay
+	}
+
+	isWorkDay(referenceDate: Date = new Date()): boolean {
+		const dayOfWeek = dayjs(referenceDate).tz(WORK_SCHEDULE_TIMEZONE).day()
+
+		return this.days.includes(dayOfWeek)
+	}
+
+	getDailySchedule(referenceDate: Date = new Date()): DailyWorkSchedule | null {
+		if (!this.isWorkDay(referenceDate)) return null
+
+		const dayOfWeek = dayjs(referenceDate).tz(WORK_SCHEDULE_TIMEZONE).day()
+		const override = this.dayOverrides.find(
+			(dayOverride) => dayOverride.dayOfWeek === dayOfWeek,
+		)
+
+		return {
+			startTime: override?.startTime ?? this.startTime,
+			endTime: override?.endTime ?? this.endTime,
+		}
 	}
 
 	isLate(clockIn: Date): boolean {
@@ -130,11 +170,17 @@ export class WorkSchedule extends AggregateRoot<WorkScheduleProps> {
 	}
 
 	startTimeToDate(referenceDate: Date = new Date()): Date {
-		return this.parseTimeStringToDate(this.startTime, referenceDate)
+		return this.parseTimeStringToDate(
+			this.getDailySchedule(referenceDate)?.startTime ?? this.startTime,
+			referenceDate,
+		)
 	}
 
 	endTimeToDate(referenceDate: Date = new Date()): Date {
-		return this.parseTimeStringToDate(this.endTime, referenceDate)
+		return this.parseTimeStringToDate(
+			this.getDailySchedule(referenceDate)?.endTime ?? this.endTime,
+			referenceDate,
+		)
 	}
 
 	private parseTimeStringToDate(timeString: string, referenceDate: Date): Date {
@@ -150,7 +196,10 @@ export class WorkSchedule extends AggregateRoot<WorkScheduleProps> {
 	}
 
 	static create(props: WorkScheduleProps, id?: UniqueEntityId): WorkSchedule {
-		const workSchedule = new WorkSchedule(props, id)
+		const workSchedule = new WorkSchedule(
+			{ ...props, dayOverrides: props.dayOverrides ?? [] },
+			id,
+		)
 
 		return workSchedule
 	}

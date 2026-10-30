@@ -150,6 +150,21 @@ model WorkSchedule {
   employee   Employee @relation(fields: [employeeId], references: [id])
 
   workDaysWorkSchedules WorkDaysWorkSchedule[]
+  dayOverrides WorkScheduleDayOverride[]
 
   @@map("work-schedule")
+}
+
+model WorkScheduleDayOverride {
+  id String @id @default(cuid())
+
+  workScheduleId String @map("work_schedule_id")
+  dayOfWeek     Int    @map("day_of_week")
+  startTime     String? @map("start_time")
+  endTime       String? @map("end_time")
+
+  workSchedule WorkSchedule @relation(fields: [workScheduleId], references: [id], onDelete: Cascade)
+
+  @@unique([workScheduleId, dayOfWeek])
+  @@map("work-schedule-day-override")
 }

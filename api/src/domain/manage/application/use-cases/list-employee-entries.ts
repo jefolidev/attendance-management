@@ -73,7 +73,6 @@ export class ListEmployeeEntriesUseCase {
 
 		const entriesAndStatistics: Record<string, EntriesAndStatisticsProps>[] =
 			entriesForPage.map((entry) => {
-				const { startTime, endTime } = workSchedule
 
 				const getTimeFromString = (timeString: string, referenceDate: Date) => {
 					const [hours, minutes] = timeString.split(':').map(Number)
@@ -86,27 +85,32 @@ export class ListEmployeeEntriesUseCase {
 						.millisecond(0)
 				}
 
-				const workStartTime = getTimeFromString(startTime, entry.clockIn)
-				const workEndTime = getTimeFromString(endTime, entry.clockIn)
+				const dailySchedule = workSchedule.getDailySchedule(entry.clockIn)
+				const workStartTime = dailySchedule
+					? getTimeFromString(dailySchedule.startTime, entry.clockIn)
+					: null
+				const workEndTime = dailySchedule
+					? getTimeFromString(dailySchedule.endTime, entry.clockIn)
+					: null
 
 				const arrivedTime = dayjs(entry.clockIn).tz(WORK_SCHEDULE_TIMEZONE)
 				const departedTime = entry.clockOut
 					? dayjs(entry.clockOut).tz(WORK_SCHEDULE_TIMEZONE)
 					: null
 
-				const entryMinutesEarly = dayjs(arrivedTime).isBefore(workStartTime)
+				const entryMinutesEarly = workStartTime && dayjs(arrivedTime).isBefore(workStartTime)
 					? workStartTime.diff(arrivedTime, 'minute')
 					: 0
 
-				const entryMinutesLate = dayjs(arrivedTime).isAfter(workStartTime)
+				const entryMinutesLate = workStartTime && dayjs(arrivedTime).isAfter(workStartTime)
 					? arrivedTime.diff(workStartTime, 'minute')
 					: 0
 
-				const departureMinutesEarly = departedTime?.isBefore(workEndTime)
+				const departureMinutesEarly = workEndTime && departedTime?.isBefore(workEndTime)
 					? workEndTime.diff(departedTime, 'minute')
 					: 0
 
-				const departureMinutesLate = departedTime?.isAfter(workEndTime)
+				const departureMinutesLate = workEndTime && departedTime?.isAfter(workEndTime)
 					? departedTime.diff(workEndTime, 'minute')
 					: 0
 

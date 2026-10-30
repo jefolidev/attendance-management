@@ -1,3 +1,6 @@
+import dayjs from 'dayjs'
+import timezone from 'dayjs/plugin/timezone'
+import utc from 'dayjs/plugin/utc'
 import { makeEmployee } from '@test/factories/make-employee'
 import { makeTimeEntry } from '@test/factories/make-time-entry'
 import { InMemoryEmployeeRepository } from '@test/repositories/repository/in-memory-employee.repository'
@@ -6,6 +9,9 @@ import { InMemoryWorkScheduleRepository } from '@test/repositories/repository/in
 import { TimeEntryStage } from '../../enterprise/entities/time-entry'
 import { WorkSchedule } from '../../enterprise/entities/work-schedule'
 import { GetAccumulatedDelayTimeUseCase } from './get-accumulated-delay-time'
+
+dayjs.extend(utc)
+dayjs.extend(timezone)
 
 let inMemoryEmployeeRepository: InMemoryEmployeeRepository
 let inMemoryWorkScheduleRepository: InMemoryWorkScheduleRepository
@@ -33,17 +39,21 @@ describe('Get Accumulated Delay Time', () => {
 			startTime: '09:00',
 			endTime: '17:00',
 			breaksPerDay: 1,
-			days: [1, 2, 3, 4, 5],
+			days: [0, 1, 2, 3, 4, 5, 6],
 			lateTolerance: 5,
 		})
 
 		await inMemoryWorkScheduleRepository.create(workSchedule)
 
 		const dayAt = (daysAgo: number, hours: number, minutes: number) => {
-			const date = new Date()
-			date.setDate(date.getDate() - daysAgo)
-			date.setHours(hours, minutes, 0, 0)
-			return date
+			return dayjs
+				.tz('2026-01-02 00:00', 'America/Fortaleza')
+				.subtract(daysAgo, 'day')
+				.hour(hours)
+				.minute(minutes)
+				.second(0)
+				.millisecond(0)
+				.toDate()
 		}
 
 		// 10 minutos de atraso, sem compensação no final do expediente.

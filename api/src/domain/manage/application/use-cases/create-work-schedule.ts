@@ -5,6 +5,8 @@ import { DuplicatedError } from "../../../../core/entities/errors/duplicated-err
 import { WorkSchedule } from "../../enterprise/entities/work-schedule";
 import type { EmployeeRepository } from "../repositories/employee.repository";
 import { WorkScheduleRepository } from "../repositories/work-schedule.repository";
+import type { WorkScheduleDayOverride } from '../../enterprise/entities/work-schedule'
+import { validateDayOverrides } from './work-schedule-validation'
 
 interface CreateWorkScheduleUseCaseRequest {
   startTime: string
@@ -14,6 +16,7 @@ interface CreateWorkScheduleUseCaseRequest {
   breaksPerDay: number
 
   days: number[]
+  dayOverrides?: WorkScheduleDayOverride[]
 
   requesterId: string
 }
@@ -24,7 +27,7 @@ export class CreateWorkScheduleUseCase {
   constructor(private readonly workscheduleRepository: WorkScheduleRepository, private readonly employeeRepository: EmployeeRepository) {}
 
   async execute(request: CreateWorkScheduleUseCaseRequest): Promise<CreateWorkScheduleUseCaseResponse> {
-    const { days, endTime, lateTolerance, requesterId, startTime, breaksPerDay } = request
+    const { days, endTime, lateTolerance, requesterId, startTime, breaksPerDay, dayOverrides = [] } = request
 
     const requester = await this.employeeRepository.findById(requesterId)
 
@@ -65,13 +68,20 @@ export class CreateWorkScheduleUseCase {
       return left(new BadRequestError("Start time and end time must be valid times"))
     }
 
+    const dayOverridesError = validateDayOverrides(dayOverrides, days, startTime, endTime)
+
+    if (dayOverridesError) {
+      return left(new BadRequestError(dayOverridesError))
+    }
+
     const workSchedule = WorkSchedule.create({
       startTime,
       endTime,
       lateTolerance,
       days,
       breaksPerDay: breaksPerDay,
-      employeeId: requester.id
+      employeeId: requester.id,
+      dayOverrides,
     })
 
     await this.workscheduleRepository.create(workSchedule)

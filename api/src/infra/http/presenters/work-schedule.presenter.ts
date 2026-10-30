@@ -11,5 +11,6 @@ export function presentWorkSchedule(workSchedule: WorkSchedule) {
     lateTolerance: workSchedule.lateTolerance,
     breaksPerDay: workSchedule.breaksPerDay,
     days: workSchedule.days,
+    dayOverrides: workSchedule.dayOverrides,
   };
 }

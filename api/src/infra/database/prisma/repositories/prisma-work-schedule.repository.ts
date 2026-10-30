@@ -17,6 +17,13 @@ export class PrismaWorkScheduleRepository implements WorkScheduleRepository {
               },
             },
           },
+          dayOverrides: {
+            create: workSchedule.dayOverrides.map((dayOverride) => ({
+              dayOfWeek: dayOverride.dayOfWeek,
+              startTime: dayOverride.startTime ?? null,
+              endTime: dayOverride.endTime ?? null,
+            })),
+          },
         },
       });
     }
@@ -28,6 +35,7 @@ export class PrismaWorkScheduleRepository implements WorkScheduleRepository {
           workDaysWorkSchedules: {
             include: { workDays: true },
           },
+          dayOverrides: true,
         },
       });
 
@@ -41,6 +49,7 @@ export class PrismaWorkScheduleRepository implements WorkScheduleRepository {
           workDaysWorkSchedules: {
             include: { workDays: true },
           },
+          dayOverrides: true,
         },
       });
 
@@ -82,6 +91,21 @@ export class PrismaWorkScheduleRepository implements WorkScheduleRepository {
                   },
                 },
               },
+            });
+          }
+
+          await transaction.workScheduleDayOverride.deleteMany({
+            where: { workScheduleId: workSchedule.id.toString() },
+          });
+
+          if (workSchedule.dayOverrides.length > 0) {
+            await transaction.workScheduleDayOverride.createMany({
+              data: workSchedule.dayOverrides.map((dayOverride) => ({
+                workScheduleId: workSchedule.id.toString(),
+                dayOfWeek: dayOverride.dayOfWeek,
+                startTime: dayOverride.startTime ?? null,
+                endTime: dayOverride.endTime ?? null,
+              })),
             });
           }
         });

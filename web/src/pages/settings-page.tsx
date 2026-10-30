@@ -11,6 +11,7 @@ import { Label } from '@/components/ui/label'
 import { EmptyState } from '@/components/shared/empty-state'
 import { LoadingState } from '@/components/shared/loading-state'
 import { PageHeader } from '@/components/shared/page-header'
+import { DayOverridesField, WorkDaysField } from '@/components/shared/work-schedule-fields'
 import { useAuth } from '@/features/auth/use-auth'
 import { getErrorMessage } from '@/lib/formatters'
 import { createWorkSchedule, getWorkSchedule, updateWorkSchedule } from '@/services/work-schedule-service'
@@ -19,12 +20,19 @@ import { toast } from 'sonner'
 
 const timePattern = /^\d{2}:\d{2}$/
 
+const dayOverrideSchema = z.object({
+  dayOfWeek: z.number().int().min(0).max(6),
+  startTime: z.string().regex(timePattern, 'Informe um horário válido.').optional(),
+  endTime: z.string().regex(timePattern, 'Informe um horário válido.').optional(),
+})
+
 const workScheduleSchema = z.object({
   startTime: z.string().regex(timePattern, 'Informe um horário válido.'),
   endTime: z.string().regex(timePattern, 'Informe um horário válido.'),
   breaksPerDay: z.number().int('Informe um número inteiro.').min(0, 'Informe zero ou mais pausas.'),
   lateTolerance: z.number().int('Informe um número inteiro.').min(0, 'Informe zero ou mais minutos.'),
   days: z.array(z.number().int().min(0).max(6)).min(1, 'Selecione pelo menos um dia de trabalho.'),
+  dayOverrides: z.array(dayOverrideSchema),
 })
 
 type WorkScheduleForm = z.infer<typeof workScheduleSchema>
@@ -35,9 +43,10 @@ export function SettingsPage() {
   const scheduleQuery = useQuery({ queryKey: ['work-schedule'], queryFn: getWorkSchedule })
   const { register, control, handleSubmit, reset, setValue, formState: { errors, isSubmitting } } = useForm<WorkScheduleForm>({
     resolver: zodResolver(workScheduleSchema),
-    defaultValues: { startTime: '', endTime: '', breaksPerDay: 0, lateTolerance: 0, days: [] },
+    defaultValues: { startTime: '', endTime: '', breaksPerDay: 0, lateTolerance: 0, days: [], dayOverrides: [] },
   })
   const selectedDays = useWatch({ control, name: 'days' })
+  const selectedOverrides = useWatch({ control, name: 'dayOverrides' })
 
   useEffect(() => {
     if (!scheduleQuery.data) return
@@ -47,18 +56,14 @@ export function SettingsPage() {
       breaksPerDay: scheduleQuery.data.breaksPerDay,
       lateTolerance: scheduleQuery.data.lateTolerance,
       days: scheduleQuery.data.days,
+      dayOverrides: scheduleQuery.data.dayOverrides,
     })
   }, [reset, scheduleQuery.data])
 
   const onSubmit = async (values: WorkScheduleForm) => {
     try {
       if (scheduleQuery.data) {
-        await updateWorkSchedule({
-          startTime: values.startTime,
-          endTime: values.endTime,
-          breaksPerDay: values.breaksPerDay,
-          lateTolerance: values.lateTolerance,
-        })
+        await updateWorkSchedule(values)
       } else {
         await createWorkSchedule(values)
       }
@@ -87,7 +92,8 @@ export function SettingsPage() {
               <TimeField id="end-time" label="Horário de saída" error={errors.endTime?.message} {...register('endTime')} />
               <NumberField id="breaks-per-day" label="Quantidade de pausas" hint="por dia" error={errors.breaksPerDay?.message} {...register('breaksPerDay', { valueAsNumber: true })} />
               <NumberField id="late-tolerance" label="Tolerância de atraso" hint="em minutos" error={errors.lateTolerance?.message} {...register('lateTolerance', { valueAsNumber: true })} />
-              {!scheduleQuery.data && <WorkDaysField value={selectedDays} error={errors.days?.message} onChange={(days) => setValue('days', days, { shouldValidate: true })} />}
+              <WorkDaysField value={selectedDays} error={errors.days?.message} onChange={(days) => setValue('days', days, { shouldValidate: true })} />
+              <DayOverridesField days={selectedDays} value={selectedOverrides} onChange={(dayOverrides) => setValue('dayOverrides', dayOverrides, { shouldValidate: true })} />
               <div className="flex justify-end sm:col-span-2">
                 <Button type="submit" className="gap-2" disabled={isSubmitting}><Save className="size-4" />{isSubmitting ? 'Salvando…' : scheduleQuery.data ? 'Salvar alterações' : 'Configurar horário'}</Button>
               </div>
@@ -114,7 +120,6 @@ export function SettingsPage() {
     </div>
   )
 }
-
 type TimeFieldProps = ComponentProps<typeof Input> & { label: string; hint?: string; error?: string }
 
 function TimeField({ id, label, hint, error, ...props }: TimeFieldProps) {
@@ -126,7 +131,6 @@ function TimeField({ id, label, hint, error, ...props }: TimeFieldProps) {
     </div>
   )
 }
-
 type NumberFieldProps = ComponentProps<typeof Input> & { label: string; hint?: string; error?: string }
 
 function NumberField({ id, label, hint, error, ...props }: NumberFieldProps) {
@@ -139,31 +143,3 @@ function NumberField({ id, label, hint, error, ...props }: NumberFieldProps) {
   )
 }
 
-const weekDays = [
-  { value: 1, label: 'Seg' },
-  { value: 2, label: 'Ter' },
-  { value: 3, label: 'Qua' },
-  { value: 4, label: 'Qui' },
-  { value: 5, label: 'Sex' },
-  { value: 6, label: 'Sáb' },
-  { value: 0, label: 'Dom' },
-]
-
-function WorkDaysField({ value, error, onChange }: { value: number[]; error?: string; onChange: (days: number[]) => void }) {
-  return (
-    <div className="space-y-2 sm:col-span-2">
-      <Label>Dias de trabalho</Label>
-      <div className="grid grid-cols-4 gap-2 sm:grid-cols-7">
-        {weekDays.map((day) => {
-          const selected = value.includes(day.value)
-          return (
-            <Button key={day.value} type="button" variant={selected ? 'secondary' : 'outline'} aria-pressed={selected} onClick={() => onChange(selected ? value.filter((item) => item !== day.value) : [...value, day.value])}>
-              {day.label}
-            </Button>
-          )
-        })}
-      </div>
-      {error && <p className="text-xs text-destructive">{error}</p>}
-    </div>
-  )
-}

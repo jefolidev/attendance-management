@@ -9,6 +9,11 @@ type PrismaWorkScheduleWithDays = WorkSchedule & {
   workDaysWorkSchedules: Array<{
     workDays: WorkDays;
   }>;
+  dayOverrides: Array<{
+    dayOfWeek: number;
+    startTime: string | null;
+    endTime: string | null;
+  }>;
 };
 
 export class PrismaWorkScheduleMapper {
@@ -62,6 +67,11 @@ export class PrismaWorkScheduleMapper {
               ...(workDays.saturday ? [6] : []),
             ]
           : [],
+        dayOverrides: raw.dayOverrides.map((dayOverride) => ({
+          dayOfWeek: dayOverride.dayOfWeek,
+          startTime: dayOverride.startTime ?? undefined,
+          endTime: dayOverride.endTime ?? undefined,
+        })),
       },
       new UniqueEntityId(raw.id),
     );

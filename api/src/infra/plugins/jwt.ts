@@ -30,14 +30,15 @@ const jwtPlugin: FastifyPluginAsync = async (fastify) => {
     },                                                   
     
     validate: (request: FastifyRequest) => {
-      try {
-        const token = fastify.jwtAuth.getTokenByCookieOrHeader(request);
+      const token = fastify.jwtAuth.getTokenByCookieOrHeader(request);
 
-        if(!token) {
-          throw new Error("Token not found");
-        }
+      if(!token) {
+        throw new Error("Token not found");
       }
-      catch (error) {
+
+      try {
+        fastify.jwt.verify(token);
+      } catch {
         throw new Error("Invalid token");
       }
     },

@@ -5,6 +5,7 @@ import { BcryptHasher } from "@src/infra/cryptography/bcrypt-hasher";
 import { PrismaEmployeeRepository } from "@src/infra/database/prisma/repositories/prisma-employee.repository";
 import type { FastifyInstance } from "fastify";
 import { loginBodySchema, LoginController } from "../../controllers/login.controller";
+import { publicRouteConfig } from "@src/infra/plugins/auth-guard";
 
 export default async function loginRoute(
   fastify: FastifyInstance,
@@ -28,6 +29,7 @@ export default async function loginRoute(
       body: loginBodySchema,
       tags: ["auth"],
     },
+    config: publicRouteConfig,
     handler: controller.handle.bind(controller),
   });
 }

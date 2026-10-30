@@ -7,6 +7,7 @@ import { serializerCompiler, validatorCompiler, type ZodTypeProvider } from "fas
 import cookiesPlugin from "./plugins/cookies.ts";
 import cryptographyPlugin from "./plugins/cryptography.ts";
 import jwtPlugin from "./plugins/jwt.ts";
+import authGuardPlugin from "./plugins/auth-guard.ts";
 
 import fastifyJwt from "@fastify/jwt";
 import fastifyCookie from "@fastify/cookie";
@@ -31,7 +32,8 @@ export function buildApp(): FastifyInstance {
 
 // [ PLUGINS ]
   app.register(cryptographyPlugin);
-  app.register(jwtPlugin) 
+  app.register(jwtPlugin)
+  app.register(authGuardPlugin)
   app.register(prismaPlugin);
   app.register(cookiesPlugin);
 

@@ -7,7 +7,7 @@ export interface AuthContextValue {
   isAuthenticated: boolean
   isAdmin: boolean
   login: (username: string, password: string) => Promise<User>
-  logout: () => void
+  logout: () => Promise<void>
   impersonatedUser: User | null
   setImpersonatedUser: (user: User) => void
   clearImpersonatedUser: () => void

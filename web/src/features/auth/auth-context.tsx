@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
-import { login as loginRequest } from '@/services/auth-service'
+import { login as loginRequest, logout as logoutRequest } from '@/services/auth-service'
 import {
   clearImpersonatedUser as clearStoredImpersonatedUser,
   clearSession,
@@ -17,14 +17,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [impersonatedUser, setImpersonatedUserState] = useState<User | null>(getImpersonatedUser)
   const isAuthenticated = Boolean(user && getStoredToken())
 
-  const logout = () => {
+  const clearLocalSession = () => {
     clearSession()
     setUser(null)
     setImpersonatedUserState(null)
   }
 
+  const logout = async () => {
+    try {
+      await logoutRequest()
+    } finally {
+      clearLocalSession()
+    }
+  }
+
   useEffect(() => {
-    const handleExpiredSession = () => logout()
+    const handleExpiredSession = () => clearLocalSession()
     window.addEventListener('ponto-digital:auth-expired', handleExpiredSession)
 
     return () => window.removeEventListener('ponto-digital:auth-expired', handleExpiredSession)

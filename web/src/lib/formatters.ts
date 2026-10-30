@@ -15,6 +15,13 @@ const ptBrShortDate = new Intl.DateTimeFormat('pt-BR', {
   month: 'short',
 })
 
+const ptBrWeekdayDate = new Intl.DateTimeFormat('pt-BR', {
+  weekday: 'long',
+  day: '2-digit',
+  month: '2-digit',
+  year: 'numeric',
+})
+
 export function formatDateTime(value: string | Date) {
   return ptBrDateTime.format(new Date(value))
 }
@@ -62,7 +69,11 @@ export function formatMinutesCompact(minutes: number) {
 
 export function formatDateKey(value: string) {
   const parsed = new Date(value)
-  return Number.isNaN(parsed.getTime()) ? value : formatDate(parsed)
+  return Number.isNaN(parsed.getTime()) ? value : ptBrWeekdayDate.format(parsed)
+}
+
+export function formatWeekdayDate(value: string | Date) {
+  return ptBrWeekdayDate.format(new Date(value))
 }
 
 export function getErrorMessage(error: unknown) {

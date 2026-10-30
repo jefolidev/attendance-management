@@ -16,7 +16,7 @@ import { EmptyState } from '@/components/shared/empty-state'
 import { LoadingState } from '@/components/shared/loading-state'
 import { PageHeader } from '@/components/shared/page-header'
 import { SortOrderButton } from '@/components/shared/sort-order-button'
-import { getErrorMessage } from '@/lib/formatters'
+import { formatWeekdayDate, getErrorMessage } from '@/lib/formatters'
 import type { SortDirection } from '@/lib/sorting'
 import { createAdminEmployee, getAdminEmployees } from '@/services/admin-service'
 import { toast } from 'sonner'
@@ -74,7 +74,7 @@ export function AdminUsersPage() {
                   <TableRow key={employee.id}>
                     <TableCell><div className="flex items-center gap-3"><Avatar size="sm"><AvatarFallback>{employee.username.slice(0, 2).toUpperCase()}</AvatarFallback></Avatar><div><p className="font-medium">{employee.username}</p><p className="text-xs text-muted-foreground">{employee.id}</p></div></div></TableCell>
                     <TableCell><Badge variant="outline">{employee.role === 'ADMIN' ? 'Administrador' : 'Colaborador'}</Badge></TableCell>
-                    <TableCell className="text-sm text-muted-foreground">{employee.updatedAt ? new Date(employee.updatedAt).toLocaleDateString('pt-BR') : 'Sem atualização'}</TableCell>
+                    <TableCell className="text-sm text-muted-foreground">{employee.updatedAt ? formatWeekdayDate(employee.updatedAt) : 'Sem atualização'}</TableCell>
                     <TableCell className="text-right"><Button variant="outline" size="sm" asChild><Link to={`/admin/users/${employee.id}`}><UserRound className="size-4" /> Editar</Link></Button></TableCell>
                   </TableRow>
                 ))}

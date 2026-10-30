@@ -2,6 +2,7 @@ import { isAutomaticTimeBalanceEntryReason } from '../../../enterprise/entities/
 import type { EmployeeRepository } from '../../repositories/employee.repository'
 import type { TimeBalanceEntryRepository, AutomaticTimeBalanceEntry } from '../../repositories/time-balance-entry.repository'
 import type { TimeBalanceRepository } from '../../repositories/time-balance.repository'
+import type { TimeEntryJustificationRepository } from '../../repositories/time-entry-justification.repository'
 import type { TimeEntryRepository } from '../../repositories/time-entry.repository'
 import type { WorkScheduleRepository } from '../../repositories/work-schedule.repository'
 import { calculateAutomaticTimeEntryBalance } from '../../services/calculate-automatic-time-entry-balance'
@@ -17,6 +18,7 @@ export class RecalculateEmployeeTimeBalanceUseCase {
 		private readonly timeEntryRepository: TimeEntryRepository,
 		private readonly timeBalanceRepository: TimeBalanceRepository,
 		private readonly timeBalanceEntryRepository: TimeBalanceEntryRepository,
+		private readonly timeEntryJustificationRepository: TimeEntryJustificationRepository,
 	) {}
 
 	async execute({ employeeId }: RecalculateEmployeeTimeBalanceRequest): Promise<void> {
@@ -43,6 +45,13 @@ export class RecalculateEmployeeTimeBalanceUseCase {
 		}
 
 		const timeEntries = await this.timeEntryRepository.findByEmployeeId(employeeId)
+		const justifications = await this.timeEntryJustificationRepository.findByEmployeeId(employeeId)
+		const justifiedTypesByTimeEntry = new Map<string, Set<'LATE_ARRIVAL' | 'EARLY_DEPARTURE'>>()
+		for (const justification of justifications) {
+			const types = justifiedTypesByTimeEntry.get(justification.timeEntryId.toString()) ?? new Set()
+			types.add(justification.type)
+			justifiedTypesByTimeEntry.set(justification.timeEntryId.toString(), types)
+		}
 		timeEntries.sort((first, second) => first.clockIn.getTime() - second.clockIn.getTime())
 
 		let runningBalance = manualBalance
@@ -52,6 +61,7 @@ export class RecalculateEmployeeTimeBalanceUseCase {
 				timeEntry,
 				workSchedule,
 				runningBalance,
+				{ justifiedTypes: justifiedTypesByTimeEntry.get(timeEntry.id.toString()) },
 			)
 			automaticEntries.push(...calculatedEntries)
 			runningBalance += calculatedEntries.reduce(

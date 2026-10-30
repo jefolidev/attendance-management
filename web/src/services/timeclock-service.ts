@@ -20,6 +20,11 @@ export interface DayEntry {
   departureMinutesEarly: number
   departureMinutesLate: number
   totalWorkedMinutes: number
+  justifications: Array<{
+    type: 'LATE_ARRIVAL' | 'EARLY_DEPARTURE'
+    category: 'MEDICAL_EMERGENCY'
+    description?: string
+  }>
 }
 
 export interface Pagination {

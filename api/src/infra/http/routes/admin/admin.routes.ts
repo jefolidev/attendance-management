@@ -9,10 +9,14 @@ import { ListEmployeesUseCase } from '@src/domain/manage/application/use-cases/a
 import { UpdateEmployeePasswordUseCase } from '@src/domain/manage/application/use-cases/admin/update-employee-password'
 import { UpdateEmployeeWorkScheduleUseCase } from '@src/domain/manage/application/use-cases/admin/update-employee-work-schedule'
 import { UpdateEmployeeTimeEntryUseCase } from '@src/domain/manage/application/use-cases/admin/update-employee-time-entry'
+import { CreateTimeEntryJustificationUseCase } from '@src/domain/manage/application/use-cases/admin/create-time-entry-justification'
+import { RemoveTimeEntryJustificationUseCase } from '@src/domain/manage/application/use-cases/admin/remove-time-entry-justification'
+import { RecalculateEmployeeTimeBalanceUseCase } from '@src/domain/manage/application/use-cases/admin/recalculate-employee-time-balance'
 import { BcryptHasher } from '@src/infra/cryptography/bcrypt-hasher'
 import { PrismaEmployeeRepository } from '@src/infra/database/prisma/repositories/prisma-employee.repository'
 import { PrismaTimeBalanceRepository } from '@src/infra/database/prisma/repositories/prisma-time-balance.repository'
 import { PrismaTimeBalanceEntryRepository } from '@src/infra/database/prisma/repositories/prisma-time-balance-entry.repository'
+import { PrismaTimeEntryJustificationRepository } from '@src/infra/database/prisma/repositories/prisma-time-entry-justification.repository'
 import { PrismaTimeEntryRepository } from '@src/infra/database/prisma/repositories/prisma-time-entry.repository'
 import { PrismaWorkScheduleRepository } from '@src/infra/database/prisma/repositories/prisma-work-schedule.repository'
 import { adminRouteConfig } from '@src/infra/plugins/auth-guard'
@@ -46,12 +50,20 @@ import {
 	updateEmployeeTimeEntryBodySchema,
 	updateEmployeeTimeEntryParamsSchema,
 } from '../../controllers/update-employee-time-entry.controller'
+import { CreateTimeEntryJustificationController } from '../../controllers/create-time-entry-justification.controller'
+import { RemoveTimeEntryJustificationController } from '../../controllers/remove-time-entry-justification.controller'
+import {
+	createTimeEntryJustificationBodySchema,
+	removeTimeEntryJustificationParamsSchema,
+	timeEntryJustificationParamsSchema,
+} from '../../controllers/time-entry-justification.schemas'
 
 export default async function adminRoutes(fastify: FastifyInstance): Promise<void> {
 	const employeeRepository = new PrismaEmployeeRepository(fastify.prisma)
 	const timeBalanceRepository = new PrismaTimeBalanceRepository(fastify.prisma)
 	const timeEntryRepository = new PrismaTimeEntryRepository(fastify.prisma)
 	const workScheduleRepository = new PrismaWorkScheduleRepository(fastify.prisma)
+	const timeEntryJustificationRepository = new PrismaTimeEntryJustificationRepository(fastify.prisma)
 	const hashGenerator = new BcryptHasher()
 
 	const listEmployeesController = new ListEmployeesController(
@@ -68,6 +80,7 @@ export default async function adminRoutes(fastify: FastifyInstance): Promise<voi
 			employeeRepository,
 			workScheduleRepository,
 			timeEntryRepository,
+			timeEntryJustificationRepository,
 		),
 	)
 	const getEmployeeBalanceController = new GetEmployeeBalanceController(
@@ -97,6 +110,31 @@ export default async function adminRoutes(fastify: FastifyInstance): Promise<voi
 			workScheduleRepository,
 			timeBalanceRepository,
 			new PrismaTimeBalanceEntryRepository(fastify.prisma),
+			timeEntryJustificationRepository,
+		),
+	)
+	const recalculateEmployeeTimeBalance = new RecalculateEmployeeTimeBalanceUseCase(
+		employeeRepository,
+		workScheduleRepository,
+		timeEntryRepository,
+		timeBalanceRepository,
+		new PrismaTimeBalanceEntryRepository(fastify.prisma),
+		timeEntryJustificationRepository,
+	)
+	const createTimeEntryJustificationController = new CreateTimeEntryJustificationController(
+		new CreateTimeEntryJustificationUseCase(
+			employeeRepository,
+			timeEntryRepository,
+			timeEntryJustificationRepository,
+			recalculateEmployeeTimeBalance,
+		),
+	)
+	const removeTimeEntryJustificationController = new RemoveTimeEntryJustificationController(
+		new RemoveTimeEntryJustificationUseCase(
+			employeeRepository,
+			timeEntryRepository,
+			timeEntryJustificationRepository,
+			recalculateEmployeeTimeBalance,
 		),
 	)
 
@@ -211,6 +249,33 @@ export default async function adminRoutes(fastify: FastifyInstance): Promise<voi
 		},
 		handler: updateEmployeeTimeEntryController.handle.bind(
 			updateEmployeeTimeEntryController,
+		),
+	})
+
+	route.route({
+		method: 'POST',
+		url: '/admin/employees/:employeeId/time-entries/:timeEntryId/justifications',
+		config: adminRouteConfig,
+		schema: {
+			params: timeEntryJustificationParamsSchema,
+			body: createTimeEntryJustificationBodySchema,
+			tags: ['admin', 'time-entries', 'justifications'],
+		},
+		handler: createTimeEntryJustificationController.handle.bind(
+			createTimeEntryJustificationController,
+		),
+	})
+
+	route.route({
+		method: 'DELETE',
+		url: '/admin/employees/:employeeId/time-entries/:timeEntryId/justifications/:type',
+		config: adminRouteConfig,
+		schema: {
+			params: removeTimeEntryJustificationParamsSchema,
+			tags: ['admin', 'time-entries', 'justifications'],
+		},
+		handler: removeTimeEntryJustificationController.handle.bind(
+			removeTimeEntryJustificationController,
 		),
 	})
 }

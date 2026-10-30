@@ -4,6 +4,7 @@ import { InMemoryEmployeeRepository } from '@test/repositories/repository/in-mem
 import { InMemoryTimeBalanceEntryRepository } from '@test/repositories/repository/in-memory-time-balance-entry.repository'
 import { InMemoryTimeBalanceRepository } from '@test/repositories/repository/in-memory-time-balance.repository'
 import { InMemoryTimeEntryRepository } from '@test/repositories/repository/in-memory-time-entry.repository'
+import { InMemoryTimeEntryJustificationRepository } from '@test/repositories/repository/in-memory-time-entry-justification.repository'
 import { InMemoryWorkScheduleRepository } from '@test/repositories/repository/in-memory-work-schedule.repository'
 import { TimeBalance } from '../../../enterprise/entities/time-balance'
 import { TimeEntryStage } from '../../../enterprise/entities/time-entry'
@@ -19,6 +20,7 @@ describe('Recalculate Employee Time Balance', () => {
 		const timeBalanceEntryRepository = new InMemoryTimeBalanceEntryRepository(
 			timeBalanceRepository,
 		)
+		const timeEntryJustificationRepository = new InMemoryTimeEntryJustificationRepository()
 		const employee = makeEmployee()
 		await employeeRepository.create(employee)
 		await workScheduleRepository.create(
@@ -54,6 +56,7 @@ describe('Recalculate Employee Time Balance', () => {
 			timeEntryRepository,
 			timeBalanceRepository,
 			timeBalanceEntryRepository,
+			timeEntryJustificationRepository,
 		)
 		await sut.execute({ employeeId: employee.id.toString() })
 

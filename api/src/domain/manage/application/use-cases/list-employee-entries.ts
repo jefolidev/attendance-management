@@ -12,6 +12,7 @@ import utc from 'dayjs/plugin/utc'
 import type { EmployeeRepository } from '../repositories/employee.repository'
 import type { TimeEntryRepository } from '../repositories/time-entry.repository'
 import type { WorkScheduleRepository } from '../repositories/work-schedule.repository'
+import type { TimeEntryJustificationRepository } from '../repositories/time-entry-justification.repository'
 import type { EntriesAndStatisticsProps } from './value-objects/entries-and-statistics'
 
 dayjs.extend(utc)
@@ -37,6 +38,7 @@ export class ListEmployeeEntriesUseCase {
 		private readonly employeeRepository: EmployeeRepository,
 		private readonly workScheduleRepository: WorkScheduleRepository,
 		private readonly timeEntryRepository: TimeEntryRepository,
+		private readonly timeEntryJustificationRepository: TimeEntryJustificationRepository,
 	) {}
 
 	async execute({
@@ -70,6 +72,13 @@ export class ListEmployeeEntriesUseCase {
 			pagination,
 		)
 		const entriesForPage = timeEntries.slice(0, pagination.perPage)
+		const justifications = await this.timeEntryJustificationRepository.findByEmployeeId(requesterId)
+		const justificationsByEntryId = new Map<string, typeof justifications>()
+		for (const justification of justifications) {
+			const entryJustifications = justificationsByEntryId.get(justification.timeEntryId.toString()) ?? []
+			entryJustifications.push(justification)
+			justificationsByEntryId.set(justification.timeEntryId.toString(), entryJustifications)
+		}
 
 		const entriesAndStatistics: Record<string, EntriesAndStatisticsProps>[] =
 			entriesForPage.map((entry) => {
@@ -136,6 +145,13 @@ export class ListEmployeeEntriesUseCase {
 					departureMinutesLate,
 					totalWorkedMinutes:
 						totalWorkedTime < 0 ? -1 : Math.floor(totalWorkedTime / 60000),
+					justifications: (justificationsByEntryId.get(entry.id.toString()) ?? []).map(
+						(justification) => ({
+							type: justification.type,
+							category: justification.category,
+							description: justification.description ?? undefined,
+						}),
+					),
 				}
 				return { [localDate.format('ddd MMM DD YYYY')]: entriesAndStatistics }
 			})

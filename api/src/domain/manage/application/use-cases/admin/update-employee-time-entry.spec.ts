@@ -6,6 +6,7 @@ import { InMemoryEmployeeRepository } from '@test/repositories/repository/in-mem
 import { InMemoryTimeBalanceEntryRepository } from '@test/repositories/repository/in-memory-time-balance-entry.repository'
 import { InMemoryTimeBalanceRepository } from '@test/repositories/repository/in-memory-time-balance.repository'
 import { InMemoryTimeEntryRepository } from '@test/repositories/repository/in-memory-time-entry.repository'
+import { InMemoryTimeEntryJustificationRepository } from '@test/repositories/repository/in-memory-time-entry-justification.repository'
 import { InMemoryWorkScheduleRepository } from '@test/repositories/repository/in-memory-work-schedule.repository'
 import { TimeEntryStage } from '../../../enterprise/entities/time-entry'
 import { UpdateEmployeeTimeEntryUseCase } from './update-employee-time-entry'
@@ -15,6 +16,7 @@ let timeEntryRepository: InMemoryTimeEntryRepository
 	let timeBalanceRepository: InMemoryTimeBalanceRepository
 	let timeBalanceEntryRepository: InMemoryTimeBalanceEntryRepository
 	let workScheduleRepository: InMemoryWorkScheduleRepository
+	let timeEntryJustificationRepository: InMemoryTimeEntryJustificationRepository
 let sut: UpdateEmployeeTimeEntryUseCase
 
 describe('Update Employee Time Entry', () => {
@@ -24,12 +26,14 @@ describe('Update Employee Time Entry', () => {
 		timeBalanceRepository = new InMemoryTimeBalanceRepository()
 		timeBalanceEntryRepository = new InMemoryTimeBalanceEntryRepository(timeBalanceRepository)
 		workScheduleRepository = new InMemoryWorkScheduleRepository()
+		timeEntryJustificationRepository = new InMemoryTimeEntryJustificationRepository()
 		sut = new UpdateEmployeeTimeEntryUseCase(
 			employeeRepository,
 			timeEntryRepository,
 			workScheduleRepository,
 			timeBalanceRepository,
 			timeBalanceEntryRepository,
+			timeEntryJustificationRepository,
 		)
 	})
 

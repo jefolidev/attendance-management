@@ -29,6 +29,8 @@ model Employee {
 
   timeEntries        TimeEntry[]
   timeBalanceEntries TimeBalanceEntry[]
+  timeEntryJustifications TimeEntryJustification[] @relation("employee_time_entry_justifications")
+  approvedTimeEntryJustifications TimeEntryJustification[] @relation("approved_time_entry_justifications")
 
   workSchedule WorkSchedule?
   timeBalance  TimeBalance?
@@ -103,8 +105,40 @@ model TimeEntry {
 
   employeeId String
   employee   Employee @relation(fields: [employeeId], references: [id])
+  justifications TimeEntryJustification[] @relation("time_entry_justifications")
 
   @@map("time-entry")
+}
+
+enum TimeEntryJustificationType {
+  LATE_ARRIVAL
+  EARLY_DEPARTURE
+}
+
+enum TimeEntryJustificationCategory {
+  MEDICAL_EMERGENCY
+}
+
+model TimeEntryJustification {
+  id String @id @default(cuid())
+
+  type     TimeEntryJustificationType
+  category TimeEntryJustificationCategory
+  description String?
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  employeeId  String @map("employee_id")
+  timeEntryId String @map("time_entry_id")
+  approvedById String @map("approved_by_id")
+
+  employee  Employee  @relation("employee_time_entry_justifications", fields: [employeeId], references: [id])
+  timeEntry TimeEntry  @relation("time_entry_justifications", fields: [timeEntryId], references: [id], onDelete: Cascade)
+  approvedBy Employee @relation("approved_time_entry_justifications", fields: [approvedById], references: [id])
+
+  @@unique([timeEntryId, type])
+  @@index([employeeId])
+  @@map("time_entry_justifications")
 }
 
 model WorkDays {

@@ -6,6 +6,7 @@ import { normalizePagination } from '@src/core/repositories/pagination'
 import type { EmployeeRepository } from '../../repositories/employee.repository'
 import type { TimeEntryRepository } from '../../repositories/time-entry.repository'
 import type { WorkScheduleRepository } from '../../repositories/work-schedule.repository'
+import type { TimeEntryJustificationRepository } from '../../repositories/time-entry-justification.repository'
 import type { ListEmployeeEntriesUseCase } from '../list-employee-entries'
 import { ListEmployeeEntriesUseCase as ListEmployeeEntries } from '../list-employee-entries'
 import { ensureAdminAndTarget } from './ensure-admin'
@@ -25,11 +26,13 @@ export class GetEmployeeEntriesUseCase {
 		private readonly employeeRepository: EmployeeRepository,
 		private readonly workScheduleRepository: WorkScheduleRepository,
 		timeEntryRepository: TimeEntryRepository,
+		timeEntryJustificationRepository: TimeEntryJustificationRepository,
 	) {
 		this.listEmployeeEntriesUseCase = new ListEmployeeEntries(
 			employeeRepository,
 			workScheduleRepository,
 			timeEntryRepository,
+			timeEntryJustificationRepository,
 		)
 	}
 

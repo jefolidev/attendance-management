@@ -2,6 +2,7 @@ import { type ZodTypeProvider } from "fastify-type-provider-zod";
 import { ListEmployeeEntriesUseCase } from "@src/domain/manage/application/use-cases/list-employee-entries";
 import { PrismaEmployeeRepository } from "@src/infra/database/prisma/repositories/prisma-employee.repository";
 import { PrismaTimeEntryRepository } from "@src/infra/database/prisma/repositories/prisma-time-entry.repository";
+import { PrismaTimeEntryJustificationRepository } from "@src/infra/database/prisma/repositories/prisma-time-entry-justification.repository";
 import { PrismaWorkScheduleRepository } from "@src/infra/database/prisma/repositories/prisma-work-schedule.repository";
 import type { FastifyInstance } from "fastify";
 import {
@@ -15,10 +16,12 @@ export default async function listEmployeeEntriesRoute(
   const employeeRepository = new PrismaEmployeeRepository(fastify.prisma);
   const workScheduleRepository = new PrismaWorkScheduleRepository(fastify.prisma);
   const timeEntryRepository = new PrismaTimeEntryRepository(fastify.prisma);
+  const timeEntryJustificationRepository = new PrismaTimeEntryJustificationRepository(fastify.prisma);
   const useCase = new ListEmployeeEntriesUseCase(
     employeeRepository,
     workScheduleRepository,
     timeEntryRepository,
+    timeEntryJustificationRepository,
   );
   const controller = new ListEmployeeEntriesController(useCase, fastify);
 

@@ -3,6 +3,7 @@ import { makeTimeEntry } from '@test/factories/make-time-entry'
 import { InMemoryEmployeeRepository } from '@test/repositories/repository/in-memory-employee.repository'
 import { InMemoryTimeEntryRepository } from '@test/repositories/repository/in-memory-time-entry.repository'
 import { InMemoryWorkScheduleRepository } from '@test/repositories/repository/in-memory-work-schedule.repository'
+import { InMemoryTimeEntryJustificationRepository } from '@test/repositories/repository/in-memory-time-entry-justification.repository'
 import { TimeEntryStage } from '../../enterprise/entities/time-entry'
 import { WorkSchedule } from '../../enterprise/entities/work-schedule'
 import { ListEmployeeEntriesUseCase } from './list-employee-entries'
@@ -10,6 +11,7 @@ import { ListEmployeeEntriesUseCase } from './list-employee-entries'
 let inMemoryEmployeeRepository: InMemoryEmployeeRepository
 let inMemoryWorkScheduleRepository: InMemoryWorkScheduleRepository
 let inMemoryTimeEntryRepository: InMemoryTimeEntryRepository
+let inMemoryTimeEntryJustificationRepository: InMemoryTimeEntryJustificationRepository
 let sut: ListEmployeeEntriesUseCase
 
 describe('List Employee Entries', () => {
@@ -17,10 +19,12 @@ describe('List Employee Entries', () => {
 		inMemoryEmployeeRepository = new InMemoryEmployeeRepository()
 		inMemoryWorkScheduleRepository = new InMemoryWorkScheduleRepository()
 		inMemoryTimeEntryRepository = new InMemoryTimeEntryRepository()
+		inMemoryTimeEntryJustificationRepository = new InMemoryTimeEntryJustificationRepository()
 		sut = new ListEmployeeEntriesUseCase(
 			inMemoryEmployeeRepository,
 			inMemoryWorkScheduleRepository,
 			inMemoryTimeEntryRepository,
+			inMemoryTimeEntryJustificationRepository,
 		)
 	})
 

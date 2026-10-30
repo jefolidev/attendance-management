@@ -71,4 +71,26 @@ export async function updateAdminEmployeeTimeEntry(employeeId: string, timeEntry
   await api.patch(`/admin/employees/${employeeId}/time-entries/${timeEntryId}`, payload)
 }
 
+export type TimeEntryJustificationType = 'LATE_ARRIVAL' | 'EARLY_DEPARTURE'
+
+export async function createAdminTimeEntryJustification(
+  employeeId: string,
+  timeEntryId: string,
+  payload: {
+    type: TimeEntryJustificationType
+    category: 'MEDICAL_EMERGENCY'
+    description?: string
+  },
+) {
+  await api.post(`/admin/employees/${employeeId}/time-entries/${timeEntryId}/justifications`, payload)
+}
+
+export async function removeAdminTimeEntryJustification(
+  employeeId: string,
+  timeEntryId: string,
+  type: TimeEntryJustificationType,
+) {
+  await api.delete(`/admin/employees/${employeeId}/time-entries/${timeEntryId}/justifications/${type}`)
+}
+
 export type AdminEntry = DayEntry

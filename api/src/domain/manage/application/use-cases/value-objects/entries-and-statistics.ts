@@ -16,6 +16,11 @@ export interface EntriesAndStatisticsProps {
 	departureMinutesEarly: number
 	departureMinutesLate: number
 	totalWorkedMinutes: number
+	justifications: Array<{
+		type: 'LATE_ARRIVAL' | 'EARLY_DEPARTURE'
+		category: 'MEDICAL_EMERGENCY'
+		description?: string
+	}>
 }
 
 export class EntriesAndStatistics extends ValueObject<EntriesAndStatisticsProps> {
@@ -57,6 +62,10 @@ export class EntriesAndStatistics extends ValueObject<EntriesAndStatisticsProps>
 
 	get totalWorkedMinutes() {
 		return this.props.totalWorkedMinutes
+	}
+
+	get justifications() {
+		return this.props.justifications
 	}
 
 	static create(props: EntriesAndStatisticsProps): EntriesAndStatistics {

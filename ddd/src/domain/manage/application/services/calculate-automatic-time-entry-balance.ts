@@ -1,5 +1,6 @@
 import type { AutomaticTimeBalanceEntry } from '../repositories/time-balance-entry.repository'
 import type { TimeEntry } from '../../enterprise/entities/time-entry'
+import type { TimeEntryJustificationType } from '../../enterprise/entities/time-entry-justification'
 import type { WorkSchedule } from '../../enterprise/entities/work-schedule'
 import dayjs from 'dayjs'
 import timezone from 'dayjs/plugin/timezone'
@@ -14,12 +15,17 @@ export function calculateAutomaticTimeEntryBalance(
 	timeEntry: TimeEntry,
 	workSchedule: WorkSchedule,
 	startingBalanceMinutes: number,
-	options: { includeClockIn?: boolean; includeClockOut?: boolean } = {},
+	options: {
+		includeClockIn?: boolean
+		includeClockOut?: boolean
+		justifiedTypes?: ReadonlySet<TimeEntryJustificationType>
+	} = {},
 ): AutomaticTimeBalanceEntry[] {
 	const entries: AutomaticTimeBalanceEntry[] = []
 	let balanceMinutes = startingBalanceMinutes
 	const includeClockIn = options.includeClockIn ?? true
 	const includeClockOut = options.includeClockOut ?? true
+	const justifiedTypes = options.justifiedTypes ?? new Set<TimeEntryJustificationType>()
 
 	const addEntry = (
 		type: AutomaticTimeBalanceEntry['type'],
@@ -37,7 +43,10 @@ export function calculateAutomaticTimeEntryBalance(
 			WORK_SCHEDULE_TIMEZONE,
 		)
 
-		if (workSchedule.isLateWithTolerance(timeEntry.clockIn)) {
+		if (
+			workSchedule.isLateWithTolerance(timeEntry.clockIn) &&
+			!justifiedTypes.has('LATE_ARRIVAL')
+		) {
 			addEntry('DEBIT', 'LATE_ARRIVAL', clockIn.diff(expectedStart, 'minute'))
 		} else if (workSchedule.isEarly(timeEntry.clockIn)) {
 			addEntry(
@@ -58,7 +67,10 @@ export function calculateAutomaticTimeEntryBalance(
 			WORK_SCHEDULE_TIMEZONE,
 		)
 
-		if (workSchedule.isDepartedEarly(timeEntry.clockOut)) {
+		if (
+			workSchedule.isDepartedEarly(timeEntry.clockOut) &&
+			!justifiedTypes.has('EARLY_DEPARTURE')
+		) {
 			addEntry('DEBIT', 'EARLY_DEPARTURE', expectedEnd.diff(clockOut, 'minute'))
 		} else if (workSchedule.isDepartedLate(timeEntry.clockOut)) {
 			addEntry(

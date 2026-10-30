@@ -6,6 +6,7 @@ import type { EmployeeRepository } from '../../repositories/employee.repository'
 import type { TimeBalanceEntryRepository } from '../../repositories/time-balance-entry.repository'
 import type { TimeBalanceRepository } from '../../repositories/time-balance.repository'
 import type { TimeEntryRepository } from '../../repositories/time-entry.repository'
+import type { TimeEntryJustificationRepository } from '../../repositories/time-entry-justification.repository'
 import type { WorkScheduleRepository } from '../../repositories/work-schedule.repository'
 import { RecalculateEmployeeTimeBalanceUseCase } from './recalculate-employee-time-balance'
 import { ensureAdminAndTarget } from './ensure-admin'
@@ -32,6 +33,7 @@ export class UpdateEmployeeTimeEntryUseCase {
 		workScheduleRepository: WorkScheduleRepository,
 		timeBalanceRepository: TimeBalanceRepository,
 		timeBalanceEntryRepository: TimeBalanceEntryRepository,
+		timeEntryJustificationRepository: TimeEntryJustificationRepository,
 	) {
 		this.recalculateEmployeeTimeBalance = new RecalculateEmployeeTimeBalanceUseCase(
 			employeeRepository,
@@ -39,6 +41,7 @@ export class UpdateEmployeeTimeEntryUseCase {
 			timeEntryRepository,
 			timeBalanceRepository,
 			timeBalanceEntryRepository,
+			timeEntryJustificationRepository,
 		)
 	}
 

@@ -29,6 +29,7 @@ export function presentEntriesAndStatistics(
     departureMinutesEarly: entry.departureMinutesEarly,
     departureMinutesLate: entry.departureMinutesLate,
     totalWorkedMinutes: entry.totalWorkedMinutes,
+    justifications: entry.justifications,
   };
 }
 

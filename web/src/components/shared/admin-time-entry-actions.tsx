@@ -83,7 +83,7 @@ export function AdminTimeEntryActions({ employeeId, entry }: { employeeId: strin
           <form onSubmit={(event) => { event.preventDefault(); updateMutation.mutate() }}>
             <div className="space-y-2">
               <Label htmlFor="admin-entry-time">Horário</Label>
-              <Input id="admin-entry-time" type="time" required value={time} onChange={(event) => setTime(event.target.value)} />
+              <Input id="admin-entry-time" type="time" lang="pt-BR" step={60} required value={time} onChange={(event) => setTime(event.target.value)} />
             </div>
             <DialogFooter className="mt-6">
               <Button type="button" variant="outline" onClick={() => setEditing(null)}>Cancelar</Button>

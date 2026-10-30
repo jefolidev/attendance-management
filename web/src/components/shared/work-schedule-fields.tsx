@@ -74,7 +74,7 @@ function OverrideTimeField({ id, label, value, onChange }: { id: string; label: 
   return (
     <div className="space-y-2">
       <Label htmlFor={id}>{label} <span className="text-muted-foreground">(opcional)</span></Label>
-      <Input id={id} type="time" value={value ?? ''} onChange={onChange} />
+      <Input id={id} type="time" lang="pt-BR" step={60} value={value ?? ''} onChange={onChange} />
     </div>
   )
 }

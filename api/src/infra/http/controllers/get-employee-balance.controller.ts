@@ -1,7 +1,7 @@
 import type { GetEmployeeBalanceUseCase } from '@src/domain/manage/application/use-cases/admin/get-employee-balance'
 import type { TimeBalance } from '@src/domain/manage/enterprise/entities/time-balance'
 import type { FastifyReply, FastifyRequest } from 'fastify'
-import { presentTimeBalanceEntry } from '../presenters/time-balance-entry.presenter'
+import { presentTimeBalanceEntry } from '@src/infra/http/presenters/time-balance-entry.presenter'
 import { sendAdminError } from './admin-error-response'
 import { employeeIdParamsSchema } from './update-employee-password.controller'
 

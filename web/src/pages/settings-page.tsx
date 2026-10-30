@@ -71,6 +71,9 @@ export function SettingsPage() {
         <CardContent>
           {scheduleQuery.isLoading && <LoadingState rows={2} />}
           {scheduleQuery.isError && <EmptyState title="Horário indisponível" description="Não foi possível carregar o horário de trabalho." action={<Button variant="outline" onClick={() => void scheduleQuery.refetch()}>Tentar novamente</Button>} />}
+          {!scheduleQuery.isLoading && !scheduleQuery.isError && !scheduleQuery.data && (
+            <EmptyState title="Horário não configurado" description="Configure seu horário de trabalho para poder registrar a entrada na Home." />
+          )}
           {scheduleQuery.data && (
             <form className="grid gap-5 sm:grid-cols-2" onSubmit={handleSubmit(onSubmit)}>
               <TimeField id="start-time" label="Horário de entrada" error={errors.startTime?.message} {...register('startTime')} />

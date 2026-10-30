@@ -1,6 +1,7 @@
-import { ArrowRight, CheckCircle2, Clock3 } from 'lucide-react'
+import { ArrowRight, CalendarClock, CheckCircle2, Clock3 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { useEffect, useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { EmptyState } from '@/components/shared/empty-state'
@@ -9,19 +10,21 @@ import { TimeClockAction } from '@/features/timeclock/components/time-clock-acti
 import { useTimeClockStatus } from '@/features/timeclock/hooks/use-time-clock-status'
 import { useAuth } from '@/features/auth/use-auth'
 import { formatDate, formatDuration, formatTime } from '@/lib/formatters'
+import { getWorkSchedule } from '@/services/work-schedule-service'
 
 export function HomePage() {
   const { employee } = useAuth()
   const clock = useTimeClockStatus()
+  const scheduleQuery = useQuery({ queryKey: ['work-schedule'], queryFn: getWorkSchedule, retry: false })
   const firstName = employee?.username || 'você'
   const now = useCurrentTime()
 
-  if (clock.isLoading) {
+  if (clock.isLoading || scheduleQuery.isLoading) {
     return <div className="mx-auto max-w-5xl space-y-8"><LoadingState rows={3} /></div>
   }
 
-  if (clock.isError) {
-    return <EmptyState title="Não foi possível carregar o seu dia" description="Verifique se a API está disponível e tente novamente." action={<Button onClick={() => void clock.refetch()}>Tentar novamente</Button>} />
+  if (clock.isError || scheduleQuery.isError) {
+    return <EmptyState title="Não foi possível carregar o seu dia" description="Verifique se a API está disponível e tente novamente." action={<Button onClick={() => void Promise.all([clock.refetch(), scheduleQuery.refetch()])}>Tentar novamente</Button>} />
   }
 
   return (
@@ -32,7 +35,9 @@ export function HomePage() {
           <p className="mb-3 text-sm font-medium text-muted-foreground">{formatDate(now)}</p>
           <h1 className="max-w-2xl text-3xl font-semibold tracking-[-0.04em] text-foreground sm:text-5xl">Bem-vindo(a), {firstName}!<br />Vamos dar início ao trabalho?</h1>
           <p className="mt-4 max-w-md text-sm leading-6 text-muted-foreground">Quando estiver pronto, registre sua entrada para começar a jornada de hoje.</p>
-          <div className="mt-10 w-full"><TimeClockAction {...clockActionProps(clock)} /></div>
+          <div className="mt-10 w-full">
+            {scheduleQuery.data ? <TimeClockAction {...clockActionProps(clock)} /> : <ScheduleMissingNotice />}
+          </div>
           <ActionFeedback action={clock.lastAction} />
         </section>
       )}
@@ -79,6 +84,25 @@ export function HomePage() {
         </section>
       )}
     </div>
+  )
+}
+
+function ScheduleMissingNotice() {
+  return (
+    <Card className="mx-auto w-full max-w-xl border-amber-200 bg-amber-50/70 text-left shadow-none dark:border-amber-900/70 dark:bg-amber-950/20">
+      <CardContent className="flex flex-col gap-5 p-5 sm:flex-row sm:items-center sm:p-6">
+        <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300" aria-hidden="true">
+          <CalendarClock className="size-5" />
+        </span>
+        <div className="min-w-0 flex-1">
+          <h2 className="font-medium text-amber-950 dark:text-amber-100">Configure seu horário de trabalho</h2>
+          <p className="mt-1 text-sm leading-6 text-amber-900/75 dark:text-amber-200/75">Você precisa ter um horário configurado antes de registrar a entrada.</p>
+        </div>
+        <Button asChild variant="outline" className="shrink-0 border-amber-300 bg-transparent text-amber-900 hover:bg-amber-100 dark:border-amber-800 dark:text-amber-200 dark:hover:bg-amber-950/60">
+          <Link to="/configuracoes">Configurar horário</Link>
+        </Button>
+      </CardContent>
+    </Card>
   )
 }
 

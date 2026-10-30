@@ -13,8 +13,11 @@ export interface WorkSchedule {
 }
 
 export async function getWorkSchedule() {
-  const { data } = await api.get<WorkSchedule>('/employees/work-schedule')
-  return data
+  const { data, status } = await api.get<WorkSchedule | null>('/employees/work-schedule', {
+    validateStatus: (responseStatus) => responseStatus === 200 || responseStatus === 404,
+  })
+
+  return status === 404 ? null : data
 }
 
 export async function updateWorkSchedule(payload: Partial<Pick<WorkSchedule, 'startTime' | 'endTime' | 'lateTolerance' | 'breaksPerDay'>>) {

@@ -22,11 +22,6 @@ const timePattern = /^\d{2}:\d{2}$/
 const workScheduleSchema = z.object({
   startTime: z.string().regex(timePattern, 'Informe um horário válido.'),
   endTime: z.string().regex(timePattern, 'Informe um horário válido.'),
-  breakStartTime: z.string().regex(timePattern, 'Informe um horário válido.').or(z.literal('')),
-  breakEndTime: z.string().regex(timePattern, 'Informe um horário válido.').or(z.literal('')),
-}).refine((values) => Boolean(values.breakStartTime) === Boolean(values.breakEndTime), {
-  message: 'Informe início e fim do intervalo.',
-  path: ['breakEndTime'],
 })
 
 type WorkScheduleForm = z.infer<typeof workScheduleSchema>
@@ -37,7 +32,7 @@ export function SettingsPage() {
   const scheduleQuery = useQuery({ queryKey: ['work-schedule'], queryFn: getWorkSchedule })
   const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<WorkScheduleForm>({
     resolver: zodResolver(workScheduleSchema),
-    defaultValues: { startTime: '', endTime: '', breakStartTime: '', breakEndTime: '' },
+    defaultValues: { startTime: '', endTime: '' },
   })
 
   useEffect(() => {
@@ -45,8 +40,6 @@ export function SettingsPage() {
     reset({
       startTime: scheduleQuery.data.startTime,
       endTime: scheduleQuery.data.endTime,
-      breakStartTime: scheduleQuery.data.breakStartTime || '',
-      breakEndTime: scheduleQuery.data.breakEndTime || '',
     })
   }, [reset, scheduleQuery.data])
 
@@ -55,8 +48,6 @@ export function SettingsPage() {
       await updateWorkSchedule({
         startTime: values.startTime,
         endTime: values.endTime,
-        breakStartTime: values.breakStartTime || null,
-        breakEndTime: values.breakEndTime || null,
       })
       await queryClient.invalidateQueries({ queryKey: ['work-schedule'] })
       toast.success('Horário de trabalho atualizado.')
@@ -78,8 +69,6 @@ export function SettingsPage() {
             <form className="grid gap-5 sm:grid-cols-2" onSubmit={handleSubmit(onSubmit)}>
               <TimeField id="start-time" label="Horário de entrada" error={errors.startTime?.message} {...register('startTime')} />
               <TimeField id="end-time" label="Horário de saída" error={errors.endTime?.message} {...register('endTime')} />
-              <TimeField id="break-start-time" label="Início do intervalo" hint="Opcional" error={errors.breakStartTime?.message} {...register('breakStartTime')} />
-              <TimeField id="break-end-time" label="Fim do intervalo" hint="Opcional" error={errors.breakEndTime?.message} {...register('breakEndTime')} />
               <div className="flex justify-end sm:col-span-2">
                 <Button type="submit" className="gap-2" disabled={isSubmitting}><Save className="size-4" />{isSubmitting ? 'Salvando…' : 'Salvar alterações'}</Button>
               </div>

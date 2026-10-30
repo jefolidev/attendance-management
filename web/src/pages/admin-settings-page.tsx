@@ -20,11 +20,9 @@ import { toast } from 'sonner'
 const scheduleSchema = z.object({
   startTime: z.string().regex(/^\d{2}:\d{2}$/, 'Informe um horário válido.'),
   endTime: z.string().regex(/^\d{2}:\d{2}$/, 'Informe um horário válido.'),
-  breakStartTime: z.string().regex(/^\d{2}:\d{2}$/, 'Informe um horário válido.').or(z.literal('')),
-  breakEndTime: z.string().regex(/^\d{2}:\d{2}$/, 'Informe um horário válido.').or(z.literal('')),
   lateTolerance: z.coerce.number().int().nonnegative('Use um valor positivo ou zero.'),
   breaksPerDay: z.coerce.number().int().nonnegative('Use um valor positivo ou zero.'),
-}).refine((values) => Boolean(values.breakStartTime) === Boolean(values.breakEndTime), { message: 'Informe início e fim do intervalo.', path: ['breakEndTime'] })
+})
 
 type ScheduleForm = z.input<typeof scheduleSchema>
 type ScheduleSubmit = z.output<typeof scheduleSchema>
@@ -34,12 +32,12 @@ export function AdminSettingsPage() {
   const queryClient = useQueryClient()
   const employeesQuery = useQuery({ queryKey: ['admin-settings-employees'], queryFn: () => getAdminEmployees(1, 100, 'desc') })
   const scheduleQuery = useQuery({ queryKey: ['admin-work-schedule', impersonatedUser?.id], queryFn: () => getAdminEmployeeWorkSchedule(impersonatedUser!.id), enabled: Boolean(impersonatedUser) })
-  const { register, handleSubmit, reset, formState: { errors } } = useForm<ScheduleForm, unknown, ScheduleSubmit>({ resolver: zodResolver(scheduleSchema), defaultValues: { startTime: '', endTime: '', breakStartTime: '', breakEndTime: '', lateTolerance: 0, breaksPerDay: 0 } })
-  const updateMutation = useMutation({ mutationFn: (values: ScheduleSubmit) => updateAdminEmployeeWorkSchedule(impersonatedUser!.id, { ...values, breakStartTime: values.breakStartTime || null, breakEndTime: values.breakEndTime || null }), onSuccess: async () => { await queryClient.invalidateQueries({ queryKey: ['admin-work-schedule', impersonatedUser?.id] }); toast.success('Horário do perfil atualizado.') }, onError: (error) => toast.error(getErrorMessage(error)) })
+  const { register, handleSubmit, reset, formState: { errors } } = useForm<ScheduleForm, unknown, ScheduleSubmit>({ resolver: zodResolver(scheduleSchema), defaultValues: { startTime: '', endTime: '', lateTolerance: 0, breaksPerDay: 0 } })
+  const updateMutation = useMutation({ mutationFn: (values: ScheduleSubmit) => updateAdminEmployeeWorkSchedule(impersonatedUser!.id, values), onSuccess: async () => { await queryClient.invalidateQueries({ queryKey: ['admin-work-schedule', impersonatedUser?.id] }); toast.success('Horário do perfil atualizado.') }, onError: (error) => toast.error(getErrorMessage(error)) })
 
   useEffect(() => {
     if (!scheduleQuery.data) return
-    reset({ startTime: scheduleQuery.data.startTime, endTime: scheduleQuery.data.endTime, breakStartTime: scheduleQuery.data.breakStartTime || '', breakEndTime: scheduleQuery.data.breakEndTime || '', lateTolerance: scheduleQuery.data.lateTolerance, breaksPerDay: scheduleQuery.data.breaksPerDay })
+    reset({ startTime: scheduleQuery.data.startTime, endTime: scheduleQuery.data.endTime, lateTolerance: scheduleQuery.data.lateTolerance, breaksPerDay: scheduleQuery.data.breaksPerDay })
   }, [reset, scheduleQuery.data])
 
   return (
@@ -51,7 +49,7 @@ export function AdminSettingsPage() {
       {impersonatedUser && scheduleQuery.isLoading && <LoadingState rows={3} />}
       {impersonatedUser && scheduleQuery.isError && <EmptyState title="Horário indisponível" description="Este perfil não possui um horário configurado ou a API não respondeu." action={<Button variant="outline" onClick={() => void scheduleQuery.refetch()}>Tentar novamente</Button>} />}
       {impersonatedUser && scheduleQuery.data === null && <EmptyState title="Horário ainda não configurado" description="A API atual permite editar horários existentes, mas não criar uma jornada nova por esta tela." />}
-      {impersonatedUser && scheduleQuery.data && <Card className="border-border/70 shadow-none"><CardHeader><CardTitle className="text-lg font-medium">Horário de trabalho de {impersonatedUser.username}</CardTitle></CardHeader><CardContent><form className="grid gap-5 sm:grid-cols-2" onSubmit={handleSubmit((values) => updateMutation.mutate(values))}><TimeField id="admin-start-time" label="Horário de entrada" error={errors.startTime?.message} {...register('startTime')} /><TimeField id="admin-end-time" label="Horário de saída" error={errors.endTime?.message} {...register('endTime')} /><TimeField id="admin-break-start" label="Início do intervalo" hint="Opcional" error={errors.breakStartTime?.message} {...register('breakStartTime')} /><TimeField id="admin-break-end" label="Fim do intervalo" hint="Opcional" error={errors.breakEndTime?.message} {...register('breakEndTime')} /><NumberField id="admin-tolerance" label="Tolerância em minutos" error={errors.lateTolerance?.message} {...register('lateTolerance')} /><NumberField id="admin-breaks" label="Pausas por dia" error={errors.breaksPerDay?.message} {...register('breaksPerDay')} /><div className="flex justify-end sm:col-span-2"><Button type="submit" className="gap-2" disabled={updateMutation.isPending}><Save className="size-4" />{updateMutation.isPending ? 'Salvando…' : 'Salvar alterações'}</Button></div></form></CardContent></Card>}
+      {impersonatedUser && scheduleQuery.data && <Card className="border-border/70 shadow-none"><CardHeader><CardTitle className="text-lg font-medium">Horário de trabalho de {impersonatedUser.username}</CardTitle></CardHeader><CardContent><form className="grid gap-5 sm:grid-cols-2" onSubmit={handleSubmit((values) => updateMutation.mutate(values))}><TimeField id="admin-start-time" label="Horário de entrada" error={errors.startTime?.message} {...register('startTime')} /><TimeField id="admin-end-time" label="Horário de saída" error={errors.endTime?.message} {...register('endTime')} /><NumberField id="admin-tolerance" label="Tolerância em minutos" error={errors.lateTolerance?.message} {...register('lateTolerance')} /><NumberField id="admin-breaks" label="Pausas por dia" error={errors.breaksPerDay?.message} {...register('breaksPerDay')} /><div className="flex justify-end sm:col-span-2"><Button type="submit" className="gap-2" disabled={updateMutation.isPending}><Save className="size-4" />{updateMutation.isPending ? 'Salvando…' : 'Salvar alterações'}</Button></div></form></CardContent></Card>}
     </div>
   )
 }

@@ -1,6 +1,10 @@
+const WORK_SCHEDULE_TIMEZONE = 'America/Fortaleza'
+
 const ptBrDateTime = new Intl.DateTimeFormat('pt-BR', {
   dateStyle: 'short',
   timeStyle: 'short',
+  timeZone: WORK_SCHEDULE_TIMEZONE,
+  hourCycle: 'h23',
 })
 
 const ptBrDate = new Intl.DateTimeFormat('pt-BR', {
@@ -40,6 +44,8 @@ export function formatTime(value: string | Date) {
   return new Intl.DateTimeFormat('pt-BR', {
     hour: '2-digit',
     minute: '2-digit',
+    timeZone: WORK_SCHEDULE_TIMEZONE,
+    hourCycle: 'h23',
   }).format(new Date(value))
 }
 

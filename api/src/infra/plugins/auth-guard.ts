@@ -44,6 +44,11 @@ const authGuardPlugin: FastifyPluginAsync = async (fastify) => {
 			return
 		}
 
+		if (await fastify.tokenInvalidator.isInvalidated(token)) {
+			reply.status(401).send({ error: 'Invalid token' })
+			return
+		}
+
 		try {
 			const payload = fastify.jwt.verify<{
 				id?: unknown

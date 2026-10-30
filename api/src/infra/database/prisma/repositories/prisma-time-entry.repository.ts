@@ -32,8 +32,8 @@ export class PrismaTimeEntryRepository implements TimeEntryRepository {
             ? await this.prisma.timeEntry.findMany({
                 where: { employeeId },
                 skip: (normalizePagination(paginationParams).page - 1) * normalizePagination(paginationParams).perPage,
-                take: normalizePagination(paginationParams).perPage,
-                orderBy: { clockIn: "desc" },
+                take: normalizePagination(paginationParams).perPage + 1,
+                orderBy: { clockIn: normalizePagination(paginationParams).sort },
             })
             : await this.prisma.timeEntry.findMany({
                 where: { employeeId },

@@ -7,8 +7,10 @@ import { Card, CardContent } from '@/components/ui/card'
 import { EmptyState } from '@/components/shared/empty-state'
 import { LoadingState } from '@/components/shared/loading-state'
 import { PageHeader } from '@/components/shared/page-header'
+import { SortOrderButton } from '@/components/shared/sort-order-button'
 import { StatusBadge } from '@/components/shared/status-badge'
 import { formatDateKey, formatDateTime, formatDuration } from '@/lib/formatters'
+import type { SortDirection } from '@/lib/sorting'
 import { getEntries, type DayEntry } from '@/services/timeclock-service'
 
 interface HistoryRow {
@@ -19,7 +21,8 @@ interface HistoryRow {
 export function HistoryPage() {
   const [page, setPage] = useState(1)
   const [dateFilter, setDateFilter] = useState('')
-  const entriesQuery = useQuery({ queryKey: ['time-entries', page, 20], queryFn: () => getEntries(page, 20) })
+  const [sort, setSort] = useState<SortDirection>('desc')
+  const entriesQuery = useQuery({ queryKey: ['time-entries', page, 20, sort], queryFn: () => getEntries(page, 20, sort) })
 
   const rows = useMemo<HistoryRow[]>(() => (entriesQuery.data?.entries || []).map((item) => {
     const [date, entry] = Object.entries(item)[0] || ['', null]
@@ -38,8 +41,10 @@ export function HistoryPage() {
           <label htmlFor="history-date" className="flex items-center gap-2 text-sm font-medium"><Filter className="size-4 text-muted-foreground" /> Filtrar registros carregados por data</label>
           <Input id="history-date" type="date" value={dateFilter} onChange={(event) => setDateFilter(event.target.value)} className="max-w-xs" />
         </div>
-        {dateFilter && <Button variant="ghost" onClick={() => setDateFilter('')}>Limpar filtro</Button>}
-        <p className="text-xs text-muted-foreground sm:max-w-xs">A API atual oferece paginação, mas ainda não recebe filtro de data.</p>
+        <div className="flex items-center gap-2">
+          {dateFilter && <Button variant="ghost" onClick={() => setDateFilter('')}>Limpar filtro</Button>}
+          <SortOrderButton value={sort} onChange={(value) => { setSort(value); setPage(1) }} />
+        </div>
       </div>
 
       {entriesQuery.isLoading && <LoadingState rows={5} />}
@@ -76,9 +81,9 @@ export function HistoryPage() {
         </Card>
       )}
 
-      {entriesQuery.data && (entriesQuery.data.pagination.hasNextPage || page > 1) && (
+      {entriesQuery.data && (
         <div className="flex items-center justify-between border-t pt-5">
-          <p className="text-sm text-muted-foreground">Página {page}</p>
+          <p className="text-sm text-muted-foreground">Página {entriesQuery.data.pagination.page}</p>
           <div className="flex gap-2">
             <Button variant="outline" size="sm" disabled={page === 1} onClick={() => setPage((current) => Math.max(1, current - 1))}><ChevronLeft className="size-4" /> Anterior</Button>
             <Button variant="outline" size="sm" disabled={!entriesQuery.data.pagination.hasNextPage} onClick={() => setPage((current) => current + 1)}>Próxima <ChevronRight className="size-4" /></Button>

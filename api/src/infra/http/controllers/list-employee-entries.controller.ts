@@ -7,6 +7,7 @@ import { z } from "zod";
 export const listEmployeeEntriesQuerySchema = z.object({
   page: z.coerce.number().int().positive().optional(),
   perPage: z.coerce.number().int().positive().max(100).optional(),
+  sort: z.enum(["asc", "desc"]).optional(),
 });
 
 export class ListEmployeeEntriesController {
@@ -16,7 +17,7 @@ export class ListEmployeeEntriesController {
   ) {}
 
   async handle(request: FastifyRequest, reply: FastifyReply): Promise<void> {
-    const { page, perPage } = listEmployeeEntriesQuerySchema.parse(request.query);
+    const { page, perPage, sort } = listEmployeeEntriesQuerySchema.parse(request.query);
     const token = this.fastify.jwtAuth.getTokenByCookieOrHeader(request);
 
     if (!token) {
@@ -29,6 +30,7 @@ export class ListEmployeeEntriesController {
         requesterId: requester.id as string,
         page,
         perPage,
+        sort,
       });
 
       if (result.isLeft()) {

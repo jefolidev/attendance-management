@@ -6,6 +6,7 @@ import { z } from "zod";
 export const getBalanceEventsQuerySchema = z.object({
   page: z.coerce.number().int().positive().optional(),
   perPage: z.coerce.number().int().positive().max(100).optional(),
+  sort: z.enum(["asc", "desc"]).optional(),
 });
 
 export class GetBalanceEventsController {
@@ -15,7 +16,7 @@ export class GetBalanceEventsController {
   ) {}
 
   async handle(request: FastifyRequest, reply: FastifyReply): Promise<void> {
-    const { page, perPage } = getBalanceEventsQuerySchema.parse(request.query);
+    const { page, perPage, sort } = getBalanceEventsQuerySchema.parse(request.query);
     const token = this.fastify.jwtAuth.getTokenByCookieOrHeader(request);
 
     if (!token) {
@@ -28,6 +29,7 @@ export class GetBalanceEventsController {
         requesterId: requester.id as string,
         page,
         perPage,
+        sort,
       });
 
       if (result.isLeft()) {

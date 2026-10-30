@@ -19,6 +19,7 @@ interface GetAccumulatedDelayTimeUseCaseRequest {
 	requesterId: string
 	page?: number
 	perPage?: number
+	sort?: 'asc' | 'desc'
 }
 
 export interface DelayDay {
@@ -81,6 +82,7 @@ export class GetAccumulatedDelayTimeUseCase {
 			const pagination = normalizePagination({
 				page: request.page,
 				perPage: request.perPage ?? 10,
+				sort: request.sort,
 			})
 
 			return right({
@@ -146,6 +148,12 @@ export class GetAccumulatedDelayTimeUseCase {
 		const pagination = normalizePagination({
 			page: request.page,
 			perPage: request.perPage ?? 10,
+			sort: request.sort,
+		})
+		delayDays.sort((first, second) => {
+			const firstTime = first.date.getTime()
+			const secondTime = second.date.getTime()
+			return pagination.sort === 'asc' ? firstTime - secondTime : secondTime - firstTime
 		})
 		const start = (pagination.page - 1) * pagination.perPage
 		const days = delayDays.slice(start, start + pagination.perPage)

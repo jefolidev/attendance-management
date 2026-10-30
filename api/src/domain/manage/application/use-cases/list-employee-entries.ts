@@ -21,6 +21,7 @@ interface ListEmployeeEntriesUseCaseRequest {
 	requesterId: string
 	page?: number
 	perPage?: number
+	sort?: 'asc' | 'desc'
 }
 
 type ListEmployeeEntriesUseCaseResponse = Either<
@@ -42,6 +43,7 @@ export class ListEmployeeEntriesUseCase {
 		requesterId,
 		page,
 		perPage,
+		sort,
 	}: ListEmployeeEntriesUseCaseRequest): Promise<ListEmployeeEntriesUseCaseResponse> {
 		if (!requesterId) {
 			return left(new NotFoundError('Requester ID is required'))
@@ -62,14 +64,15 @@ export class ListEmployeeEntriesUseCase {
 			)
 		}
 
-		const pagination = normalizePagination({ page, perPage })
+		const pagination = normalizePagination({ page, perPage, sort })
 		const timeEntries = await this.timeEntryRepository.findByEmployeeId(
 			requesterId,
 			pagination,
 		)
+		const entriesForPage = timeEntries.slice(0, pagination.perPage)
 
 		const entriesAndStatistics: Record<string, EntriesAndStatisticsProps>[] =
-			timeEntries.map((entry) => {
+			entriesForPage.map((entry) => {
 				const { startTime, endTime } = workSchedule
 
 				const getTimeFromString = (timeString: string, referenceDate: Date) => {
@@ -136,7 +139,7 @@ export class ListEmployeeEntriesUseCase {
 			entries: entriesAndStatistics,
 			pagination: {
 				...pagination,
-				hasNextPage: timeEntries.length === pagination.perPage,
+				hasNextPage: timeEntries.length > pagination.perPage,
 			},
 		})
 	}

@@ -1,4 +1,5 @@
 import { api } from '@/lib/api'
+import type { SortDirection } from '@/lib/sorting'
 
 export type TimeEntryStage = 'clocked-in' | 'clocked-out' | 'on-break'
 
@@ -24,6 +25,7 @@ export interface Pagination {
   page: number
   perPage: number
   hasNextPage: boolean
+  sort: SortDirection
 }
 
 export interface EntriesResponse {
@@ -35,9 +37,9 @@ export interface TimeEntryActionResponse {
   timeEntryId: string
 }
 
-export async function getEntries(page = 1, perPage = 100) {
+export async function getEntries(page = 1, perPage = 100, sort: SortDirection = 'desc') {
   const { data } = await api.get<EntriesResponse>('/employees/time-entries', {
-    params: { page, perPage },
+    params: { page, perPage, sort },
   })
   return data
 }

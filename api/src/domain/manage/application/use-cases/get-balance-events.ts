@@ -13,6 +13,7 @@ interface GetBalanceEventsUseCaseRequest {
 	requesterId: string
 	page?: number
 	perPage?: number
+	sort?: 'asc' | 'desc'
 }
 
 type GetBalanceEventsUseCaseResponse = Either<
@@ -45,7 +46,12 @@ export class GetBalanceEventsUseCase {
 
 		const pagination = normalizePagination(request)
 		const start = (pagination.page - 1) * pagination.perPage
-		const events = timeBalance.events.slice(
+		const sortedEvents = [...timeBalance.events].sort((first, second) => {
+			const firstTime = first.createdAt.getTime()
+			const secondTime = second.createdAt.getTime()
+			return pagination.sort === 'asc' ? firstTime - secondTime : secondTime - firstTime
+		})
+		const events = sortedEvents.slice(
 			start,
 			start + pagination.perPage,
 		)
@@ -54,7 +60,7 @@ export class GetBalanceEventsUseCase {
 			events,
 			pagination: {
 				...pagination,
-				hasNextPage: timeBalance.events.length > start + events.length,
+				hasNextPage: sortedEvents.length > start + events.length,
 			},
 		})
 	}

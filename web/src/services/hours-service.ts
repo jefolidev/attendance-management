@@ -1,5 +1,6 @@
 import { api } from '@/lib/api'
 import type { Pagination } from './timeclock-service'
+import type { SortDirection } from '@/lib/sorting'
 
 export type TimeBalanceEntryType = 'CREDIT' | 'DEBIT'
 export type TimeBalanceEntryReason =
@@ -60,16 +61,16 @@ export async function getBalance() {
   return data
 }
 
-export async function getBalanceEvents(page = 1, perPage = 20) {
+export async function getBalanceEvents(page = 1, perPage = 20, sort: SortDirection = 'desc') {
   const { data } = await api.get<BalanceEventsResponse>('/employees/time-balance/events', {
-    params: { page, perPage },
+    params: { page, perPage, sort },
   })
   return data
 }
 
-export async function getAccumulatedDelay(page = 1, perPage = 10) {
+export async function getAccumulatedDelay(page = 1, perPage = 10, sort: SortDirection = 'desc') {
   const { data } = await api.get<DelayResponse>('/employees/time-balance/accumulated-delay', {
-    params: { page, perPage },
+    params: { page, perPage, sort },
   })
   return data
 }

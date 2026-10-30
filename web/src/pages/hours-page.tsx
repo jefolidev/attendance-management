@@ -1,11 +1,15 @@
 import { useQuery } from '@tanstack/react-query'
-import { ArrowDownLeft, ArrowUpRight, WalletCards } from 'lucide-react'
+import { ArrowDownLeft, ArrowUpRight, ChevronLeft, ChevronRight, WalletCards } from 'lucide-react'
+import { useState } from 'react'
+import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { EmptyState } from '@/components/shared/empty-state'
 import { LoadingState } from '@/components/shared/loading-state'
 import { PageHeader } from '@/components/shared/page-header'
+import { SortOrderButton } from '@/components/shared/sort-order-button'
 import { formatDateTime, formatDuration } from '@/lib/formatters'
+import type { SortDirection } from '@/lib/sorting'
 import { getBalance, getBalanceEvents } from '@/services/hours-service'
 
 const reasonLabels = {
@@ -18,8 +22,10 @@ const reasonLabels = {
 }
 
 export function HoursPage() {
+  const [eventsPage, setEventsPage] = useState(1)
+  const [eventsSort, setEventsSort] = useState<SortDirection>('desc')
   const balanceQuery = useQuery({ queryKey: ['time-balance'], queryFn: getBalance })
-  const eventsQuery = useQuery({ queryKey: ['balance-events', 1, 20], queryFn: () => getBalanceEvents(1, 20) })
+  const eventsQuery = useQuery({ queryKey: ['balance-events', eventsPage, 20, eventsSort], queryFn: () => getBalanceEvents(eventsPage, 20, eventsSort) })
   const balance = balanceQuery.data?.balance
   const balanceMinutes = balance?.balanceMinutes ?? 0
   const hasDebt = balanceMinutes < 0
@@ -48,7 +54,7 @@ export function HoursPage() {
       )}
 
       <section className="space-y-4">
-        <div><h2 className="text-lg font-semibold tracking-tight">Movimentações recentes</h2><p className="text-sm text-muted-foreground">Créditos e débitos lançados no banco de horas.</p></div>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between"><div><h2 className="text-lg font-semibold tracking-tight">Movimentações recentes</h2><p className="text-sm text-muted-foreground">Créditos e débitos lançados no banco de horas.</p></div><SortOrderButton value={eventsSort} onChange={(value) => { setEventsSort(value); setEventsPage(1) }} /></div>
         {eventsQuery.isLoading && <LoadingState rows={4} />}
         {eventsQuery.isError && <EmptyState title="Movimentações indisponíveis" description="Não foi possível carregar o histórico do banco de horas." />}
         {!eventsQuery.isLoading && !eventsQuery.isError && eventsQuery.data?.events.length === 0 && <EmptyState title="Nenhuma movimentação" description="Os lançamentos aparecerão aqui quando houver créditos ou débitos." />}
@@ -69,6 +75,15 @@ export function HoursPage() {
               </div>
             </CardContent>
           </Card>
+        )}
+        {eventsQuery.data && (
+          <div className="flex items-center justify-between border-t pt-5">
+            <p className="text-sm text-muted-foreground">Página {eventsQuery.data.pagination.page}</p>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" disabled={eventsPage === 1} onClick={() => setEventsPage((current) => Math.max(1, current - 1))}><ChevronLeft className="size-4" /> Anterior</Button>
+              <Button variant="outline" size="sm" disabled={!eventsQuery.data.pagination.hasNextPage} onClick={() => setEventsPage((current) => current + 1)}>Próxima <ChevronRight className="size-4" /></Button>
+            </div>
+          </div>
         )}
       </section>
     </div>

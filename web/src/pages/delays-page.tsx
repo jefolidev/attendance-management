@@ -7,14 +7,17 @@ import { Card, CardContent } from '@/components/ui/card'
 import { EmptyState } from '@/components/shared/empty-state'
 import { LoadingState } from '@/components/shared/loading-state'
 import { PageHeader } from '@/components/shared/page-header'
+import { SortOrderButton } from '@/components/shared/sort-order-button'
 import { formatDuration, formatShortDate, formatTime } from '@/lib/formatters'
+import type { SortDirection } from '@/lib/sorting'
 import { getAccumulatedDelay } from '@/services/hours-service'
 
 export function DelaysPage() {
   const [page, setPage] = useState(1)
+  const [sort, setSort] = useState<SortDirection>('desc')
   const delayQuery = useQuery({
-    queryKey: ['accumulated-delay', page],
-    queryFn: () => getAccumulatedDelay(page, 10),
+    queryKey: ['accumulated-delay', page, sort],
+    queryFn: () => getAccumulatedDelay(page, 10, sort),
   })
   const delay = delayQuery.data
 
@@ -33,7 +36,7 @@ export function DelaysPage() {
           </section>
 
           <section className="space-y-4">
-            <div><h2 className="text-lg font-semibold tracking-tight">Dias com atraso</h2><p className="text-sm text-muted-foreground">Registros calculados a partir do seu horário de trabalho.</p></div>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between"><div><h2 className="text-lg font-semibold tracking-tight">Dias com atraso</h2><p className="text-sm text-muted-foreground">Registros calculados a partir do seu horário de trabalho.</p></div><SortOrderButton value={sort} onChange={(value) => { setSort(value); setPage(1) }} /></div>
             {delay.days.length === 0 ? <EmptyState title="Nenhum atraso registrado" description="Os dias com chegada após o horário esperado aparecerão aqui." /> : (
               <div className="space-y-3">
                 {delay.days.map((day) => (
@@ -56,9 +59,9 @@ export function DelaysPage() {
             )}
           </section>
 
-          {(delay.pagination.hasNextPage || page > 1) && (
+          {delay.pagination && (
             <div className="flex items-center justify-between border-t pt-5">
-              <p className="text-sm text-muted-foreground">Página {page} de {delay.pagination.totalPages}</p>
+              <p className="text-sm text-muted-foreground">Página {delay.pagination.page} de {delay.pagination.totalPages}</p>
               <div className="flex gap-2">
                 <Button variant="outline" size="sm" disabled={page === 1} onClick={() => setPage((current) => Math.max(1, current - 1))}><ChevronLeft className="size-4" /> Anterior</Button>
                 <Button variant="outline" size="sm" disabled={!delay.pagination.hasNextPage} onClick={() => setPage((current) => current + 1)}>Próxima <ChevronRight className="size-4" /></Button>

@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useMemo, useState } from 'react'
 import { toast } from 'sonner'
 import { getErrorMessage } from '@/lib/formatters'
+import { useAuth } from '@/features/auth/use-auth'
 import {
   getEntries,
   registerTimeIn,
@@ -26,11 +27,13 @@ function getTodayEntry(entries: Array<Record<string, DayEntry>>) {
 }
 
 export function useTimeClockStatus() {
+  const { user } = useAuth()
   const queryClient = useQueryClient()
   const [lastAction, setLastAction] = useState<LastAction | null>(null)
   const entriesQuery = useQuery({
-    queryKey: ['time-clock-status'],
+    queryKey: ['time-clock-status', user?.id],
     queryFn: () => getEntries(1, 100),
+    enabled: Boolean(user?.id),
   })
   const todayEntry = useMemo(() => getTodayEntry(entriesQuery.data?.entries || []), [entriesQuery.data])
 

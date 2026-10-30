@@ -1,11 +1,16 @@
 import { createContext } from 'react'
-import type { Employee } from './auth-types'
+import type { User } from './auth-types'
 
 export interface AuthContextValue {
-  employee: Employee | null
+  user: User | null
+  employee: User | null
   isAuthenticated: boolean
-  login: (username: string, password: string) => Promise<void>
+  isAdmin: boolean
+  login: (username: string, password: string) => Promise<User>
   logout: () => void
+  impersonatedUser: User | null
+  setImpersonatedUser: (user: User) => void
+  clearImpersonatedUser: () => void
 }
 
 export const AuthContext = createContext<AuthContextValue | null>(null)

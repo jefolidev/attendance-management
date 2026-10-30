@@ -1,16 +1,26 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { login as loginRequest } from '@/services/auth-service'
-import { clearSession, getStoredEmployee, getStoredToken, storeSession } from './auth-storage'
-import type { Employee } from './auth-types'
+import {
+  clearImpersonatedUser as clearStoredImpersonatedUser,
+  clearSession,
+  getImpersonatedUser,
+  getStoredEmployee,
+  getStoredToken,
+  storeImpersonatedUser,
+  storeSession,
+} from './auth-storage'
+import type { User } from './auth-types'
 import { AuthContext, type AuthContextValue } from './auth-context-value'
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [employee, setEmployee] = useState<Employee | null>(getStoredEmployee)
-  const isAuthenticated = Boolean(employee && getStoredToken())
+  const [user, setUser] = useState<User | null>(getStoredEmployee)
+  const [impersonatedUser, setImpersonatedUserState] = useState<User | null>(getImpersonatedUser)
+  const isAuthenticated = Boolean(user && getStoredToken())
 
   const logout = () => {
     clearSession()
-    setEmployee(null)
+    setUser(null)
+    setImpersonatedUserState(null)
   }
 
   useEffect(() => {
@@ -22,16 +32,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo<AuthContextValue>(
     () => ({
-      employee,
+      user,
+      employee: user,
       isAuthenticated,
+      isAdmin: user?.role === 'ADMIN',
       login: async (username, password) => {
         const response = await loginRequest(username, password)
         storeSession(response.accessToken, response.employee)
-        setEmployee(response.employee)
+        setUser(response.employee)
+        setImpersonatedUserState(null)
+        return response.employee
       },
       logout,
+      impersonatedUser,
+      setImpersonatedUser: (selectedUser) => {
+        storeImpersonatedUser(selectedUser)
+        setImpersonatedUserState(selectedUser)
+      },
+      clearImpersonatedUser: () => {
+        clearStoredImpersonatedUser()
+        setImpersonatedUserState(null)
+      },
     }),
-    [employee, isAuthenticated],
+    [user, isAuthenticated, impersonatedUser],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

@@ -21,6 +21,11 @@ export class Employee extends AggregateRoot<EmployeeProps> {
     return this.props.password
   }
 
+  changePassword(password: string): void {
+    this.props.password = password
+    this.props.updatedAt = new Date()
+  }
+
   get role(): "ADMIN" | "EMPLOYEE" {
     return this.props.role
   }

@@ -1,4 +1,5 @@
 import { DuplicatedError } from "@src/core/entities/errors/duplicated-error";
+import { BadRequestError } from "@src/core/entities/errors/bad-request-error";
 import { NotAllowedError } from "@src/core/entities/errors/not-allowed-error";
 import { FakeHasher } from "@test/cryptography/fake-hasher";
 import { makeEmployee } from "@test/factories/make-employee";
@@ -68,5 +69,20 @@ describe('Create Employee', () => {
 
     expect(response.isLeft()).toBe(true)
     expect(response.value).toBeInstanceOf(NotAllowedError)
+  })
+
+  it('should validate username and password before creating an employee', async () => {
+    const requester = makeEmployee({ role: 'ADMIN' })
+    await inMemoryEmployeeRepository.create(requester)
+
+    const response = await sut.execute({
+      username: 'a',
+      role: 'EMPLOYEE',
+      password: 'short',
+      requesterId: requester.id.toString()
+    })
+
+    expect(response.isLeft()).toBe(true)
+    expect(response.value).toBeInstanceOf(BadRequestError)
   })
 })

@@ -50,6 +50,7 @@ export class InMemoryTimeBalanceEntryRepository
 			durationInMinutes: amount,
 			createdAt: new Date(),
 			employeeId: new UniqueEntityId(employeeId),
+			timeBalanceId: timeBalance.id,
 		})
 
 		this.items.push(timeBalanceEntry)

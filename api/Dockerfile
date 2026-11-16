@@ -13,6 +13,7 @@ WORKDIR /app
 ENV DATABASE_URL=file:/app/data/app.db
 
 COPY package.json bun.lock ./
+COPY tsconfig.json ./tsconfig.json
 RUN bun install --frozen-lockfile --ignore-scripts
 
 COPY prisma ./prisma
@@ -36,6 +37,7 @@ COPY --from=build --chown=node:node /app/node_modules ./node_modules
 COPY --from=build --chown=node:node /app/generated ./generated
 COPY --from=build --chown=node:node /app/src ./src
 COPY --from=build --chown=node:node /app/package.json ./package.json
+COPY --from=build --chown=node:node /app/tsconfig.json ./tsconfig.json
 
 RUN mkdir -p /app/data && chown node:node /app/data
 USER node

@@ -52,6 +52,9 @@ import {
 } from '../../controllers/update-employee-time-entry.controller'
 import { CreateTimeEntryJustificationController } from '../../controllers/create-time-entry-justification.controller'
 import { RemoveTimeEntryJustificationController } from '../../controllers/remove-time-entry-justification.controller'
+import { AdminDataExportController } from '../../controllers/admin-data-export.controller'
+import { AdminDataImportController } from '../../controllers/admin-data-import.controller'
+import { AdminDataTemplateController } from '../../controllers/admin-data-template.controller'
 import {
 	createTimeEntryJustificationBodySchema,
 	removeTimeEntryJustificationParamsSchema,
@@ -139,6 +142,33 @@ export default async function adminRoutes(fastify: FastifyInstance): Promise<voi
 	)
 
 	const route = fastify.withTypeProvider<ZodTypeProvider>()
+	const dataExportController = new AdminDataExportController(fastify.prisma)
+	const dataImportController = new AdminDataImportController(fastify.prisma)
+	const dataTemplateController = new AdminDataTemplateController()
+
+	route.route({
+		method: 'GET',
+		url: '/admin/data/template',
+		config: adminRouteConfig,
+		schema: { tags: ['admin', 'data-transfer'] },
+		handler: dataTemplateController.handle.bind(dataTemplateController),
+	})
+
+	route.route({
+		method: 'GET',
+		url: '/admin/data/export',
+		config: adminRouteConfig,
+		schema: { tags: ['admin', 'data-transfer'] },
+		handler: dataExportController.handle.bind(dataExportController),
+	})
+
+	route.route({
+		method: 'POST',
+		url: '/admin/data/import',
+		config: adminRouteConfig,
+		schema: { tags: ['admin', 'data-transfer'] },
+		handler: dataImportController.handle.bind(dataImportController),
+	})
 
 	route.route({
 		method: 'GET',

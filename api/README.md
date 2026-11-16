@@ -31,3 +31,15 @@ Apply the Prisma migration before starting the updated API:
 ```bash
 bun run prisma:migrate
 ```
+
+## Excel backup and restore
+
+All data can be exported or restored as one `.xlsx` workbook. Use an administrator session for these endpoints:
+
+- `GET /api/admin/data/template` downloads the empty workbook with the required tabs and column headers.
+- `GET /api/admin/data/export` downloads all application tables in one workbook.
+- `POST /api/admin/data/import` accepts the workbook as a multipart `file` field.
+
+The workbook has one tab per table, including employees, time entries, balances, schedules, justifications, and notification records. Keep the IDs and relationship columns intact. Import validates the whole workbook first, reports the sheet/row for validation errors, then applies all rows in one transaction. It merges by ID and does not delete existing records when rows are absent from the workbook.
+
+Exported workbooks contain password hashes and push notification credentials. Store them securely and restrict access to administrators.

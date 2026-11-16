@@ -12,6 +12,7 @@ import tokenInvalidatorPlugin from "./plugins/token-invalidator.ts";
 
 import fastifyJwt from "@fastify/jwt";
 import fastifyCookie from "@fastify/cookie";
+import fastifyMultipart from '@fastify/multipart'
 import routes from "./http/routes/index.ts";
 import timeClockPushSchedulerPlugin from './notifications/time-clock-push-scheduler.ts'
 
@@ -31,6 +32,9 @@ export function buildApp(): FastifyInstance {
     secret: process.env.JWT_SECRET || "ronaldo",
   });
   app.register(fastifyCookie);
+  app.register(fastifyMultipart, {
+    limits: { files: 1, fileSize: 100 * 1024 * 1024 },
+  })
 
 // [ PLUGINS ]
   app.register(cryptographyPlugin);

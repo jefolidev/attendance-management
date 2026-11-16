@@ -1,0 +1,11 @@
+.git
+.env
+.env.*
+node_modules
+generated
+dev.db
+*.db
+dist
+coverage
+test
+**/*.spec.ts

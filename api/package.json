@@ -29,6 +29,7 @@
     "start:dev": "tsx watch --env-file=.env src/infra/index.ts",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
+    "prisma:seed": "prisma db seed",
     "prisma:studio": "prisma studio"
   },
   "private": true,

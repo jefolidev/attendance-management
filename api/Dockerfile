@@ -51,4 +51,4 @@ USER node
 VOLUME ["/app/data"]
 EXPOSE 3000
 
-CMD ["sh", "-c", "./node_modules/.bin/prisma migrate deploy && exec node --import tsx src/infra/index.ts"]
+CMD ["sh", "-c", "./node_modules/.bin/prisma migrate deploy && ./node_modules/.bin/prisma db seed && exec node --import tsx src/infra/index.ts"]

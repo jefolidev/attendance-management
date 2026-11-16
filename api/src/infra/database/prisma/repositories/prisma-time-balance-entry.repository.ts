@@ -15,16 +15,20 @@ export class PrismaTimeBalanceEntryRepository
     employeeId: string,
     amount: number,
     reason: TimeBalanceEntryReason,
+    createdAt?: Date,
+    timeEntryId?: string,
   ): Promise<void> {
-    await this.addEntry(employeeId, amount, reason, "DEBIT");
+    await this.addEntry(employeeId, amount, reason, "DEBIT", createdAt, timeEntryId);
   }
 
   async addCreditEntry(
     employeeId: string,
     amount: number,
     reason: TimeBalanceEntryReason,
+    createdAt?: Date,
+    timeEntryId?: string,
   ): Promise<void> {
-    await this.addEntry(employeeId, amount, reason, "CREDIT");
+    await this.addEntry(employeeId, amount, reason, "CREDIT", createdAt, timeEntryId);
   }
 
   async replaceAutomaticEntries(
@@ -83,13 +87,18 @@ export class PrismaTimeBalanceEntryRepository
             type: entry.type,
             reason: entry.reason,
             durationInMinutes: entry.durationInMinutes,
+            createdAt: entry.createdAt,
+            timeEntryId: entry.timeEntryId,
           })),
         });
       }
 
       await transaction.timeBalance.update({
         where: { id: targetBalance.id },
-        data: { balanceMinutes },
+        data: {
+          balanceMinutes,
+          updatedAt: new Date(),
+        },
       });
     });
   }
@@ -99,6 +108,8 @@ export class PrismaTimeBalanceEntryRepository
     amount: number,
     reason: TimeBalanceEntryReason,
     type: "CREDIT" | "DEBIT",
+    createdAt?: Date,
+    timeEntryId?: string,
   ): Promise<void> {
     if (amount <= 0) return;
 
@@ -118,6 +129,8 @@ export class PrismaTimeBalanceEntryRepository
           type,
           reason,
           durationInMinutes: amount,
+          createdAt: createdAt ?? new Date(),
+          timeEntryId: timeEntryId ?? null,
         },
       });
 
@@ -126,6 +139,7 @@ export class PrismaTimeBalanceEntryRepository
         data: {
           balanceMinutes:
             timeBalance.balanceMinutes + (type === "CREDIT" ? amount : -amount),
+          updatedAt: new Date(),
         },
       });
     });

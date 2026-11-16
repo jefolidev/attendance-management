@@ -23,16 +23,20 @@ export class InMemoryTimeBalanceEntryRepository
 		employeeId: string,
 		amount: number,
 		reason: TimeBalanceEntryReason,
+		createdAt?: Date,
+		timeEntryId?: string,
 	) {
-		return this.registerEntry(employeeId, 'DEBIT', amount, reason)
+		return this.registerEntry(employeeId, 'DEBIT', amount, reason, createdAt, timeEntryId)
 	}
 
 	async addCreditEntry(
 		employeeId: string,
 		amount: number,
 		reason: TimeBalanceEntryReason,
+		createdAt?: Date,
+		timeEntryId?: string,
 	) {
-		return this.registerEntry(employeeId, 'CREDIT', amount, reason)
+		return this.registerEntry(employeeId, 'CREDIT', amount, reason, createdAt, timeEntryId)
 	}
 
 	async replaceAutomaticEntries(
@@ -64,7 +68,8 @@ export class InMemoryTimeBalanceEntryRepository
 				type: entry.type,
 				reason: entry.reason,
 				durationInMinutes: entry.durationInMinutes,
-				createdAt: new Date(),
+				createdAt: entry.createdAt,
+				timeEntryId: new UniqueEntityId(entry.timeEntryId),
 				employeeId: new UniqueEntityId(employeeId),
 				timeBalanceId: timeBalance.id,
 			})
@@ -81,6 +86,8 @@ export class InMemoryTimeBalanceEntryRepository
 		type: 'DEBIT' | 'CREDIT',
 		amount: number,
 		reason: TimeBalanceEntryReason,
+		createdAt?: Date,
+		timeEntryId?: string,
 	): Promise<void> {
 		const timeBalance =
 			await this.timeBalanceRepository.findByEmployeeId(employeeId)
@@ -93,7 +100,8 @@ export class InMemoryTimeBalanceEntryRepository
 			type,
 			reason,
 			durationInMinutes: amount,
-			createdAt: new Date(),
+			createdAt: createdAt ?? new Date(),
+			timeEntryId: timeEntryId ? new UniqueEntityId(timeEntryId) : null,
 			employeeId: new UniqueEntityId(employeeId),
 			timeBalanceId: timeBalance.id,
 		})

@@ -104,7 +104,10 @@ export class GetAccumulatedDelayTimeUseCase {
 		let totalLateMinutes = 0
 		const delayDays: DelayDay[] = []
 
-		for (const entry of completedTimeEntries) {
+		const outstandingDelayDays: DelayDay[] = []
+		for (const entry of [...completedTimeEntries].sort(
+			(first, second) => first.clockIn.getTime() - second.clockIn.getTime(),
+		)) {
 			if (!entry.clockOut) continue
 
 			const clockIn = dayjs(entry.clockIn).tz(WORK_SCHEDULE_TIMEZONE)
@@ -120,32 +123,46 @@ export class GetAccumulatedDelayTimeUseCase {
 				WORK_SCHEDULE_TIMEZONE,
 			)
 
-			const lateMinutes = Math.max(0, clockIn.diff(expectedStart, 'minute'))
+			const lateMinutes = workSchedule.isLateWithTolerance(entry.clockIn)
+				? Math.max(0, clockIn.diff(expectedStart, 'minute'))
+				: 0
 			const extraMinutes = Math.max(0, clockOut.diff(expectedEnd, 'minute'))
 
 			totalLateMinutes += lateMinutes
-			const dayCompensatedMinutes = Math.min(lateMinutes, extraMinutes)
-			compensatedMinutes += dayCompensatedMinutes
-			uncompensatedMinutes = Math.max(
-				0,
-				uncompensatedMinutes + lateMinutes - extraMinutes,
-			)
 
 			if (lateMinutes > 0) {
-				delayDays.push({
+				const delayDay: DelayDay = {
 					date: clockIn.toDate(),
 					clockIn: clockIn.toDate(),
 					clockOut: clockOut.toDate(),
-				expectedTime: dailySchedule.startTime,
+					expectedTime: dailySchedule.startTime,
 					lateMinutes,
 					reason: 'LATE_ARRIVAL',
-					compensations:
-						dayCompensatedMinutes > 0
-							? [{ durationInMinutes: dayCompensatedMinutes, reason: 'COMPENSATION' }]
-							: [],
+					compensations: [],
+				}
+				delayDays.push(delayDay)
+				outstandingDelayDays.push(delayDay)
+			}
+
+			let remainingExtraMinutes = extraMinutes
+			while (remainingExtraMinutes > 0 && outstandingDelayDays.length > 0) {
+				const outstandingDay = outstandingDelayDays[0]!
+				const dayOutstandingMinutes = outstandingDay.lateMinutes -
+					outstandingDay.compensations.reduce(
+						(total, compensation) => total + compensation.durationInMinutes,
+						0,
+					)
+				const appliedMinutes = Math.min(remainingExtraMinutes, dayOutstandingMinutes)
+				outstandingDay.compensations.push({
+					durationInMinutes: appliedMinutes,
+					reason: 'COMPENSATION',
 				})
+				remainingExtraMinutes -= appliedMinutes
+				compensatedMinutes += appliedMinutes
+				if (appliedMinutes === dayOutstandingMinutes) outstandingDelayDays.shift()
 			}
 		}
+		uncompensatedMinutes = totalLateMinutes - compensatedMinutes
 
 		const pagination = normalizePagination({
 			page: request.page,

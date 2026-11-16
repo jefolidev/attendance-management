@@ -13,6 +13,7 @@ import tokenInvalidatorPlugin from "./plugins/token-invalidator.ts";
 import fastifyJwt from "@fastify/jwt";
 import fastifyCookie from "@fastify/cookie";
 import routes from "./http/routes/index.ts";
+import timeClockPushSchedulerPlugin from './notifications/time-clock-push-scheduler.ts'
 
 export function buildApp(): FastifyInstance {
   const app = fastify().withTypeProvider<ZodTypeProvider>();
@@ -37,6 +38,7 @@ export function buildApp(): FastifyInstance {
   app.register(tokenInvalidatorPlugin)
   app.register(authGuardPlugin)
   app.register(prismaPlugin);
+  app.register(timeClockPushSchedulerPlugin)
   app.register(cookiesPlugin);
 
 // [ ROTAS ]

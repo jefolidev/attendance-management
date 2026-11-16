@@ -11,6 +11,7 @@ import registerBreakEntryRoute from "./employees/register-break-entry.routes";
 import registerTimeInEntryRoute from "./employees/register-time-in-entry.routes";
 import registerTimeOutEntryRoute from "./employees/register-time-out-entry.routes";
 import updateWorkScheduleRoute from "./employees/update-work-schedule.routes";
+import pushNotificationsRoute from "./employees/push-notifications.routes";
 import adminRoutes from "./admin/admin.routes";
 import logoutRoute from "./logout.routes";
 
@@ -29,6 +30,7 @@ const routes: FastifyPluginAsync = async (app) => {
   app.register(registerTimeInEntryRoute);
   app.register(registerTimeOutEntryRoute);
   app.register(updateWorkScheduleRoute);
+  app.register(pushNotificationsRoute);
 }
 
 export default routes

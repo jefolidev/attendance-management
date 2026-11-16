@@ -30,9 +30,11 @@ export function calculateAutomaticTimeEntryBalance(
 		type: AutomaticTimeBalanceEntry['type'],
 		reason: AutomaticTimeBalanceEntry['reason'],
 		durationInMinutes: number,
+		createdAt: Date,
+		timeEntryId: string,
 	) => {
 		if (durationInMinutes <= 0) return
-		entries.push({ type, reason, durationInMinutes })
+		entries.push({ type, reason, durationInMinutes, createdAt, timeEntryId })
 		balanceMinutes += type === 'CREDIT' ? durationInMinutes : -durationInMinutes
 	}
 
@@ -46,12 +48,20 @@ export function calculateAutomaticTimeEntryBalance(
 			workSchedule.isLateWithTolerance(timeEntry.clockIn) &&
 			!justifiedTypes.has('LATE_ARRIVAL')
 		) {
-			addEntry('DEBIT', 'LATE_ARRIVAL', clockIn.diff(expectedStart, 'minute'))
+			addEntry(
+				'DEBIT',
+				'LATE_ARRIVAL',
+				clockIn.diff(expectedStart, 'minute'),
+				timeEntry.clockIn,
+				timeEntry.id.toString(),
+			)
 		} else if (workSchedule.isEarly(timeEntry.clockIn)) {
 			addEntry(
 				'CREDIT',
 				balanceMinutes < 0 ? 'COMPENSATION' : 'EXTRA',
 				expectedStart.diff(clockIn, 'minute'),
+				timeEntry.clockIn,
+				timeEntry.id.toString(),
 			)
 		}
 	}
@@ -70,12 +80,20 @@ export function calculateAutomaticTimeEntryBalance(
 			workSchedule.isDepartedEarly(timeEntry.clockOut) &&
 			!justifiedTypes.has('EARLY_DEPARTURE')
 		) {
-			addEntry('DEBIT', 'EARLY_DEPARTURE', expectedEnd.diff(clockOut, 'minute'))
+			addEntry(
+				'DEBIT',
+				'EARLY_DEPARTURE',
+				expectedEnd.diff(clockOut, 'minute'),
+				timeEntry.clockOut,
+				timeEntry.id.toString(),
+			)
 		} else if (workSchedule.isDepartedLate(timeEntry.clockOut)) {
 			addEntry(
 				'CREDIT',
 				balanceMinutes < 0 ? 'COMPENSATION' : 'EXTRA',
 				clockOut.diff(expectedEnd, 'minute'),
+				timeEntry.clockOut,
+				timeEntry.id.toString(),
 			)
 		}
 	}

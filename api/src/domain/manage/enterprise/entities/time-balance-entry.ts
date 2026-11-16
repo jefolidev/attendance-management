@@ -29,6 +29,7 @@ export function isAutomaticTimeBalanceEntryReason(
 export interface TimeBalanceEntryProps {
 	employeeId: UniqueEntityId
 	timeBalanceId: UniqueEntityId
+	timeEntryId?: UniqueEntityId | null
 	type: TimeBalanceEntryType
 	reason: TimeBalanceEntryReason
 
@@ -44,6 +45,10 @@ export class TimeBalanceEntry extends Entity<TimeBalanceEntryProps> {
 
 	get timeBalanceId(): UniqueEntityId {
 		return this.props.timeBalanceId
+	}
+
+	get timeEntryId(): UniqueEntityId | null | undefined {
+		return this.props.timeEntryId
 	}
 
 	get type(): TimeBalanceEntryType {
@@ -75,7 +80,7 @@ export class TimeBalanceEntry extends Entity<TimeBalanceEntryProps> {
 		return new TimeBalanceEntry(
 			{
 				...props,
-				createdAt: new Date(),
+				createdAt: props.createdAt ?? new Date(),
 			},
 			id,
 		)

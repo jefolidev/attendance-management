@@ -4,6 +4,8 @@ export interface AutomaticTimeBalanceEntry {
 	type: 'CREDIT' | 'DEBIT'
 	reason: TimeBalanceEntryReason
 	durationInMinutes: number
+	createdAt: Date
+	timeEntryId: string
 }
 
 export abstract class TimeBalanceEntryRepository {
@@ -11,11 +13,15 @@ export abstract class TimeBalanceEntryRepository {
 		employeeId: string,
 		amount: number,
 		reason: TimeBalanceEntryReason,
+		createdAt?: Date,
+		timeEntryId?: string,
 	): Promise<void>
 	abstract addCreditEntry(
 		employeeId: string,
 		amount: number,
 		reason: TimeBalanceEntryReason,
+		createdAt?: Date,
+		timeEntryId?: string,
 	): Promise<void>
 	abstract replaceAutomaticEntries(
 		employeeId: string,

@@ -65,5 +65,11 @@ describe('Recalculate Employee Time Balance', () => {
 		expect(balance.events).toHaveLength(1)
 		expect(balance.events[0]?.reason).toBe('EARLY_DEPARTURE')
 		expect(balance.events[0]?.durationInMinutes).toBe(60)
+		expect(balance.events[0]?.createdAt).toEqual(
+			new Date('2026-01-02T19:00:00.000Z'),
+	)
+		expect(balance.events[0]?.timeEntryId).toEqual(
+			timeEntryRepository.items[0]?.id,
+		)
 	})
 })

@@ -2,6 +2,7 @@ import { type ZodTypeProvider } from "fastify-type-provider-zod";
 import { GetBalanceEventsUseCase } from "@src/domain/manage/application/use-cases/get-balance-events";
 import { PrismaEmployeeRepository } from "@src/infra/database/prisma/repositories/prisma-employee.repository";
 import { PrismaTimeBalanceRepository } from "@src/infra/database/prisma/repositories/prisma-time-balance.repository";
+import { PrismaTimeEntryRepository } from "@src/infra/database/prisma/repositories/prisma-time-entry.repository";
 import type { FastifyInstance } from "fastify";
 import {
   getBalanceEventsQuerySchema,
@@ -13,9 +14,11 @@ export default async function getBalanceEventsRoute(
 ): Promise<void> {
   const employeeRepository = new PrismaEmployeeRepository(fastify.prisma);
   const timeBalanceRepository = new PrismaTimeBalanceRepository(fastify.prisma);
+  const timeEntryRepository = new PrismaTimeEntryRepository(fastify.prisma);
   const useCase = new GetBalanceEventsUseCase(
     employeeRepository,
     timeBalanceRepository,
+    timeEntryRepository,
   );
   const controller = new GetBalanceEventsController(useCase, fastify);
 

@@ -56,7 +56,7 @@ describe('Register Time In Entry', () => {
 		await inMemoryWorkScheduleRepository.create(workSchedule)
 
 		const response = await sut.execute({
-			clockIn: new Date(),
+			clockIn: dayjs.tz('2026-01-01 08:30', 'America/Fortaleza').toDate(),
 			requesterId: employee.id.toString(),
 		})
 
@@ -139,6 +139,7 @@ describe('Register Time In Entry', () => {
 		expect(inMemoryTimeBalanceEntryRepository.items[0]?.type).toEqual('DEBIT')
 		expect(inMemoryTimeBalanceRepository.items[0]?.events).toHaveLength(1)
 		expect(inMemoryTimeBalanceRepository.items[0]?.balanceMinutes).toBe(-30)
+		expect(inMemoryTimeBalanceEntryRepository.items[0]?.createdAt).toEqual(clockIn)
 	})
 
 	it('should be able to hit the point when the user is an employee and is early, and should create a credit entry in the time balance', async () => {

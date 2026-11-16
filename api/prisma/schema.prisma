@@ -31,6 +31,8 @@ model Employee {
   timeBalanceEntries TimeBalanceEntry[]
   timeEntryJustifications TimeEntryJustification[] @relation("employee_time_entry_justifications")
   approvedTimeEntryJustifications TimeEntryJustification[] @relation("approved_time_entry_justifications")
+  pushSubscriptions EmployeePushSubscription[]
+  timeClockNotificationDeliveries TimeClockNotificationDelivery[]
 
   workSchedule WorkSchedule?
   timeBalance  TimeBalance?
@@ -66,10 +68,41 @@ model TimeBalanceEntry {
 
   timeBalanceId String? @map("time_balance_id")
 
+  timeEntryId String? @map("time_entry_id")
+
   employee    Employee     @relation(fields: [employeeId], references: [id])
   timeBalance TimeBalance? @relation(fields: [timeBalanceId], references: [id])
+  timeEntry   TimeEntry?   @relation(fields: [timeEntryId], references: [id], onDelete: Cascade)
+
+  @@index([timeEntryId])
 
   @@map("time_balance_entries")
+}
+
+model EmployeePushSubscription {
+  id         String   @id @default(cuid())
+  endpoint   String   @unique
+  p256dh     String
+  auth       String
+  createdAt  DateTime @default(now()) @map("created_at")
+  employeeId String   @map("employee_id")
+  employee   Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@index([employeeId])
+  @@map("employee_push_subscriptions")
+}
+
+model TimeClockNotificationDelivery {
+  id         String   @id @default(cuid())
+  employeeId String   @map("employee_id")
+  dateKey    String   @map("date_key")
+  kind       String
+  sentAt     DateTime @default(now()) @map("sent_at")
+  employee   Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@unique([employeeId, dateKey, kind])
+  @@index([dateKey])
+  @@map("time_clock_notification_deliveries")
 }
 
 model TimeBalance {
@@ -105,6 +138,7 @@ model TimeEntry {
 
   employeeId String
   employee   Employee @relation(fields: [employeeId], references: [id])
+  timeBalanceEntries TimeBalanceEntry[]
   justifications TimeEntryJustification[] @relation("time_entry_justifications")
 
   @@map("time-entry")

@@ -57,6 +57,7 @@ export class PrismaTimeBalanceRepository implements TimeBalanceRepository {
       data: {
         balanceMinutes: timeBalance.balanceMinutes,
         employeeId: timeBalance.employeeId.toString(),
+        updatedAt: new Date(),
       },
     });
   }

@@ -36,7 +36,7 @@ export function DelaysPage() {
           </section>
 
           <section className="space-y-4">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between"><div><h2 className="text-lg font-semibold tracking-tight">Dias com atraso</h2><p className="text-sm text-muted-foreground">Registros calculados a partir do seu horário de trabalho.</p></div><SortOrderButton value={sort} onChange={(value) => { setSort(value); setPage(1) }} /></div>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between"><div><h2 className="text-lg font-semibold tracking-tight">Dias com atraso</h2><p className="text-sm text-muted-foreground">A saída registrada é comparada ao expediente e pode compensar atrasos anteriores.</p></div><SortOrderButton value={sort} onChange={(value) => { setSort(value); setPage(1) }} /></div>
             {delay.days.length === 0 ? <EmptyState title="Nenhum atraso registrado" description="Os dias com chegada após o horário esperado aparecerão aqui." /> : (
               <div className="space-y-3">
                 {delay.days.map((day) => (
@@ -47,6 +47,7 @@ export function DelaysPage() {
                         <div className="mt-2 flex flex-wrap items-center gap-2">
                           <Badge variant="secondary" className="font-normal">Chegou às {formatTime(day.clockIn)}</Badge>
                           <span className="text-sm text-muted-foreground">Esperado: {day.expectedTime}</span>
+                          <span className="text-sm text-muted-foreground">Saída às {formatTime(day.clockOut)}</span>
                         </div>
                         <p className="mt-2 text-sm text-muted-foreground">Motivo: {day.reason === 'LATE_ARRIVAL' ? 'Atraso na entrada' : day.reason}</p>
                         {day.compensations.length > 0 && <div className="mt-2 space-y-1 text-sm text-emerald-700 dark:text-emerald-400">{day.compensations.map((compensation) => <p key={compensation.reason}>Compensado: +{formatDuration(compensation.durationInMinutes)}</p>)}</div>}
@@ -73,7 +74,6 @@ export function DelaysPage() {
     </div>
   )
 }
-
 function MetricCard({ label, value, icon: Icon, featured = false }: { label: string; value: string; icon: typeof TimerReset; featured?: boolean }) {
   return (
     <Card className={featured ? 'border-primary/30 bg-primary text-primary-foreground shadow-none' : 'border-border/70 shadow-none'}>

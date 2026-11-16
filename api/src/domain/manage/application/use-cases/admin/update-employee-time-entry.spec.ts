@@ -8,7 +8,9 @@ import { InMemoryTimeBalanceRepository } from '@test/repositories/repository/in-
 import { InMemoryTimeEntryRepository } from '@test/repositories/repository/in-memory-time-entry.repository'
 import { InMemoryTimeEntryJustificationRepository } from '@test/repositories/repository/in-memory-time-entry-justification.repository'
 import { InMemoryWorkScheduleRepository } from '@test/repositories/repository/in-memory-work-schedule.repository'
+import { TimeBalance } from '../../../enterprise/entities/time-balance'
 import { TimeEntryStage } from '../../../enterprise/entities/time-entry'
+import { WorkSchedule } from '../../../enterprise/entities/work-schedule'
 import { UpdateEmployeeTimeEntryUseCase } from './update-employee-time-entry'
 
 let employeeRepository: InMemoryEmployeeRepository
@@ -61,6 +63,57 @@ describe('Update Employee Time Entry', () => {
 			new Date('2026-01-02T12:15:00.000Z'),
 		)
 		expect(timeEntryRepository.items[0]?.clockOut).toBeUndefined()
+	})
+
+	it('recalculates a stale late-arrival entry after correcting the clock-in', async () => {
+		const admin = makeEmployee({ role: 'ADMIN' })
+		const employee = makeEmployee()
+		await employeeRepository.create(admin)
+		await employeeRepository.create(employee)
+		await workScheduleRepository.create(
+			WorkSchedule.create({
+				employeeId: employee.id,
+				startTime: '08:00',
+				endTime: '17:00',
+				lateTolerance: 5,
+				breaksPerDay: 1,
+				days: [5],
+			}),
+		)
+		await timeBalanceRepository.create(
+			TimeBalance.create({ employeeId: employee.id }),
+		)
+
+		const originalClockIn = new Date('2026-01-02T11:37:00.000Z')
+		const entry = makeTimeEntry({
+			employeeId: employee.id,
+			clockIn: originalClockIn,
+			status: TimeEntryStage.CLOCKED_IN,
+		})
+		await timeEntryRepository.create(entry)
+		await timeBalanceEntryRepository.replaceAutomaticEntries(
+			employee.id.toString(),
+			[
+				{
+					type: 'DEBIT',
+					reason: 'LATE_ARRIVAL',
+					durationInMinutes: 37,
+					createdAt: originalClockIn,
+				},
+			],
+		)
+
+		const response = await sut.execute({
+			requesterId: admin.id.toString(),
+			employeeId: employee.id.toString(),
+			timeEntryId: entry.id.toString(),
+			clockIn: new Date('2026-01-02T11:05:00.000Z'),
+		})
+
+		expect(response.isRight()).toBe(true)
+		expect(timeBalanceRepository.items[0]?.balanceMinutes).toBe(0)
+		expect(timeBalanceRepository.items[0]?.events).toHaveLength(0)
+		expect(timeBalanceEntryRepository.items).toHaveLength(0)
 	})
 
 	it('allows defining the end time of an open entry and editing a closed entry', async () => {

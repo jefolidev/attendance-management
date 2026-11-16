@@ -95,12 +95,16 @@ export class RegisterTimeInEntryUseCase {
 							requesterId,
 							entry.durationInMinutes,
 							entry.reason,
+							entry.createdAt,
+							entry.timeEntryId,
 						)
 					} else {
 						await this.timeBalanceEntryRepository.addDebitEntry(
 							requesterId,
 							entry.durationInMinutes,
 							entry.reason,
+							entry.createdAt,
+							entry.timeEntryId,
 						)
 					}
 				}

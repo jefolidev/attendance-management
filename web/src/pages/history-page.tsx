@@ -17,7 +17,6 @@ interface HistoryRow {
   date: string
   entry: DayEntry
 }
-
 export function HistoryPage() {
   const [page, setPage] = useState(1)
   const [dateFilter, setDateFilter] = useState('')
@@ -34,7 +33,7 @@ export function HistoryPage() {
 
   return (
     <div className="space-y-8">
-      <PageHeader title="Histórico" description="Consulte os registros que a API já consolidou para você." />
+      <PageHeader title="Histórico" description="Consulte entradas e saídas registradas pela API. Jornadas abertas ainda não têm horário de saída." />
 
       <div className="flex flex-col gap-3 rounded-xl border border-border/70 bg-card p-4 sm:flex-row sm:items-end">
         <div className="flex-1 space-y-2">
@@ -63,6 +62,7 @@ export function HistoryPage() {
                       <StatusBadge status={entry.timeEntryStage} />
                     </div>
                     <p className="mt-2 text-sm text-muted-foreground">Entrada registrada às {formatDateTime(entry.occurredAt)}</p>
+                    {entry.clockOut && <p className="text-sm text-muted-foreground">Saída registrada às {formatDateTime(entry.clockOut)}</p>}
                     <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
                       {entry.breaks.length > 0 && <span>{entry.breaks.length} {entry.breaks.length === 1 ? 'pausa' : 'pausas'}</span>}
                       {entry.entryMinutesLate > 0 && <span className="text-amber-700 dark:text-amber-400">{formatDuration(entry.entryMinutesLate)} de atraso</span>}

@@ -132,4 +132,37 @@ describe('List Employee Entries', () => {
 			])
 		}
 	})
+
+	it('should not mark an entry at the tolerance boundary as late', async () => {
+		const requester = makeEmployee({ role: 'EMPLOYEE' })
+		await inMemoryEmployeeRepository.create(requester)
+		await inMemoryWorkScheduleRepository.create(
+			WorkSchedule.create({
+				employeeId: requester.id,
+				startTime: '08:00',
+				endTime: '17:00',
+				breaksPerDay: 1,
+				days: [5],
+				lateTolerance: 5,
+			}),
+		)
+		await inMemoryTimeEntryRepository.create(
+			makeTimeEntry({
+				employeeId: requester.id,
+				clockIn: new Date('2026-01-02T11:05:00.000Z'),
+				clockOut: new Date('2026-01-02T20:00:00.000Z'),
+				status: TimeEntryStage.CLOCKED_OUT,
+			}),
+		)
+
+		const response = await sut.execute({
+			requesterId: requester.id.toString(),
+		})
+
+		expect(response.isRight()).toBe(true)
+		if (response.isRight()) {
+			const entry = Object.values(response.value.entries[0]!)[0]!
+			expect(entry.entryMinutesLate).toBe(0)
+		}
+	})
 })

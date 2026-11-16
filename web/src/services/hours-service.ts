@@ -3,6 +3,7 @@ import type { Pagination } from './timeclock-service'
 import type { SortDirection } from '@/lib/sorting'
 
 export type TimeBalanceEntryType = 'CREDIT' | 'DEBIT'
+export type BalanceEventClockType = 'CLOCK_IN' | 'CLOCK_OUT' | 'OTHER'
 export type TimeBalanceEntryReason =
   | 'LATE_ARRIVAL'
   | 'EARLY_DEPARTURE'
@@ -14,12 +15,13 @@ export type TimeBalanceEntryReason =
 export interface TimeBalanceEvent {
   employeeId: string
   timeBalanceId: string
+  timeEntryId: string | null
+  clockType: BalanceEventClockType
   type: TimeBalanceEntryType
   reason: TimeBalanceEntryReason
   durationInMinutes: number
   createdAt: string
 }
-
 export interface BalanceResponse {
   balance: {
     id: string

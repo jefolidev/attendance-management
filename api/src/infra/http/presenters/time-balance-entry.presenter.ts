@@ -7,10 +7,14 @@ import type { TimeBalanceEntryProps } from "@src/domain/manage/enterprise/entiti
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-export function presentTimeBalanceEntry(entry: TimeBalanceEntryProps) {
+export function presentTimeBalanceEntry(
+  entry: TimeBalanceEntryProps & { clockType?: 'CLOCK_IN' | 'CLOCK_OUT' | 'OTHER' },
+) {
   return {
     employeeId: entry.employeeId.toString(),
     timeBalanceId: entry.timeBalanceId.toString(),
+    timeEntryId: entry.timeEntryId?.toString() ?? null,
+    clockType: entry.clockType ?? 'OTHER',
     type: entry.type,
     reason: entry.reason,
     durationInMinutes: entry.durationInMinutes,

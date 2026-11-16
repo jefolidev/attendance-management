@@ -34,6 +34,7 @@ export class PrismaTimeBalanceMapper {
         reason: domainEvent.reason,
         durationInMinutes: domainEvent.durationInMinutes,
         createdAt: domainEvent.createdAt,
+        timeEntryId: domainEvent.timeEntryId,
       };
     });
 

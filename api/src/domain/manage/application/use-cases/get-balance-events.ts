@@ -8,6 +8,7 @@ import {
 import { TimeBalance } from '../../enterprise/entities/time-balance'
 import { EmployeeRepository } from '../repositories/employee.repository'
 import { TimeBalanceRepository } from '../repositories/time-balance.repository'
+import type { TimeEntryRepository } from '../repositories/time-entry.repository'
 
 interface GetBalanceEventsUseCaseRequest {
 	requesterId: string
@@ -18,13 +19,17 @@ interface GetBalanceEventsUseCaseRequest {
 
 type GetBalanceEventsUseCaseResponse = Either<
 	NotFoundError,
-	{ events: TimeBalance['events']; pagination: PaginationMeta }
+	{
+		events: Array<TimeBalance['events'][number] & { clockType: 'CLOCK_IN' | 'CLOCK_OUT' | 'OTHER' }>
+		pagination: PaginationMeta
+	}
 >
 
 export class GetBalanceEventsUseCase {
 	constructor(
 		private readonly employeeRepository: EmployeeRepository,
 		private readonly timeBalanceRepository: TimeBalanceRepository,
+		private readonly timeEntryRepository?: TimeEntryRepository,
 	) {}
 
 	async execute(
@@ -51,10 +56,28 @@ export class GetBalanceEventsUseCase {
 			const secondTime = second.createdAt.getTime()
 			return pagination.sort === 'asc' ? firstTime - secondTime : secondTime - firstTime
 		})
-		const events = sortedEvents.slice(
+		const pageEvents = sortedEvents.slice(
 			start,
 			start + pagination.perPage,
 		)
+		const events = await Promise.all(pageEvents.map(async (event) => {
+			const timeEntry = event.timeEntryId && this.timeEntryRepository
+				? await this.timeEntryRepository.findById(event.timeEntryId.toString())
+				: null
+			const clockType = timeEntry && event.createdAt.getTime() === timeEntry.clockIn.getTime()
+				? 'CLOCK_IN'
+				: timeEntry?.clockOut && event.createdAt.getTime() === timeEntry.clockOut.getTime()
+					? 'CLOCK_OUT'
+					: event.reason === 'LATE_ARRIVAL'
+						? 'CLOCK_IN'
+						: event.reason === 'EARLY_DEPARTURE' ||
+							event.reason === 'OVERTIME' ||
+							event.reason === 'COMPENSATION' ||
+							event.reason === 'EXTRA'
+							? 'CLOCK_OUT'
+							: 'OTHER'
+			return { ...event, clockType } as const
+		}))
 
 		return right({
 			events,

@@ -122,12 +122,16 @@ export class RegisterTimeOutEntryUseCase {
 						requesterId,
 						entry.durationInMinutes,
 						entry.reason,
+						entry.createdAt,
+						entry.timeEntryId,
 					)
 				} else {
 					await this.timeBalanceEntryRepository.addDebitEntry(
 						requesterId,
 						entry.durationInMinutes,
 						entry.reason,
+						entry.createdAt,
+						entry.timeEntryId,
 					)
 				}
 			}

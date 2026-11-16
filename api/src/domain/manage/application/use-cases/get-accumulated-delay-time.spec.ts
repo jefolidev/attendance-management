@@ -114,9 +114,9 @@ describe('Get Accumulated Delay Time', () => {
 		expect(response.isRight()).toBe(true)
 
 		if (response.isRight()) {
-			expect(response.value.totalLateMinutes).toBe(50)
-			expect(response.value.compensatedMinutes).toBe(20)
-			expect(response.value.uncompensatedMinutes).toBe(20)
+			expect(response.value.totalLateMinutes).toBe(45)
+			expect(response.value.compensatedMinutes).toBe(30)
+			expect(response.value.uncompensatedMinutes).toBe(15)
 		}
 	})
 
@@ -144,6 +144,39 @@ describe('Get Accumulated Delay Time', () => {
 		)
 
 		const response = await sut.execute({ requesterId: requester.id.toString() })
+
+		expect(response.isRight()).toBe(true)
+		if (response.isRight()) {
+			expect(response.value.totalLateMinutes).toBe(0)
+			expect(response.value.days).toHaveLength(0)
+		}
+	})
+
+	it('should ignore arrivals within the configured late tolerance', async () => {
+		const requester = makeEmployee({ role: 'EMPLOYEE' })
+		await inMemoryEmployeeRepository.create(requester)
+		await inMemoryWorkScheduleRepository.create(
+			WorkSchedule.create({
+				employeeId: requester.id,
+				startTime: '08:00',
+				endTime: '17:00',
+				breaksPerDay: 1,
+				days: [5],
+				lateTolerance: 5,
+			}),
+		)
+		await inMemoryTimeEntryRepository.create(
+			makeTimeEntry({
+				employeeId: requester.id,
+				clockIn: new Date('2026-01-02T11:05:00.000Z'),
+				clockOut: new Date('2026-01-02T20:00:00.000Z'),
+				status: TimeEntryStage.CLOCKED_OUT,
+			}),
+		)
+
+		const response = await sut.execute({
+			requesterId: requester.id.toString(),
+		})
 
 		expect(response.isRight()).toBe(true)
 		if (response.isRight()) {

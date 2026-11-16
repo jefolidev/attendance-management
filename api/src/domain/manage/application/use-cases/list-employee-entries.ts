@@ -111,7 +111,7 @@ export class ListEmployeeEntriesUseCase {
 					? workStartTime.diff(arrivedTime, 'minute')
 					: 0
 
-				const entryMinutesLate = workStartTime && dayjs(arrivedTime).isAfter(workStartTime)
+				const entryMinutesLate = workStartTime && workSchedule.isLateWithTolerance(entry.clockIn)
 					? arrivedTime.diff(workStartTime, 'minute')
 					: 0
 

@@ -35,6 +35,7 @@ ENV NODE_ENV=production \
 COPY --from=build --chown=node:node /app/node_modules ./node_modules
 COPY --from=build --chown=node:node /app/generated ./generated
 COPY --from=build --chown=node:node /app/src ./src
+COPY --from=build --chown=node:node /app/package.json ./package.json
 
 RUN mkdir -p /app/data && chown node:node /app/data
 USER node
